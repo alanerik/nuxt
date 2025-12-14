@@ -15,6 +15,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
     }
 
     // Obtener el rol del usuario
+    if (!user.value?.id) return
+
     const { data: profile } = await supabase
         .from('profiles')
         .select('role')
@@ -27,7 +29,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
         return navigateTo('/login')
     }
 
-    const userRole = profile.role
+    const userRole = (profile as any)?.role
 
     // Verificar que el usuario tenga el rol correcto para la ruta
     if (to.path.startsWith('/admin') && userRole !== 'admin') {

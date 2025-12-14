@@ -184,6 +184,10 @@ const handleLogin = async () => {
 
   if (signInError) throw signInError
 
+  if (!data.user?.id) {
+    throw new Error('Error al iniciar sesión: No se pudo obtener la información del usuario')
+  }
+
   // Verificar que el usuario tenga el rol correcto
   const { data: profile } = await supabase
     .from('profiles')
@@ -215,7 +219,7 @@ const handleRegister = async () => {
     options: {
       data: {
         full_name: form.value.full_name,
-        role: props.role
+        role: 'inquilino' // Siempre registrar como inquilino por defecto
       }
     }
   })
