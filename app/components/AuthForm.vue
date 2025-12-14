@@ -11,44 +11,44 @@
 
       <UForm :state="form" @submit="handleSubmit" class="space-y-4">
         <!-- Email -->
-        <UFormGroup label="Email" name="email" required>
+        <UFormField label="Email" name="email" required>
           <UInput
             v-model="form.email"
             type="email"
             placeholder="tu@email.com"
             icon="i-lucide-mail"
           />
-        </UFormGroup>
+        </UFormField>
 
         <!-- Nombre completo (solo en registro) -->
-        <UFormGroup v-if="!isLogin" label="Nombre completo" name="full_name" required>
+        <UFormField v-if="!isLogin" label="Nombre completo" name="full_name" required>
           <UInput
             v-model="form.full_name"
             type="text"
             placeholder="Juan Pérez"
             icon="i-lucide-user"
           />
-        </UFormGroup>
+        </UFormField>
 
         <!-- Contraseña -->
-        <UFormGroup label="Contraseña" name="password" required>
+        <UFormField label="Contraseña" name="password" required>
           <UInput
             v-model="form.password"
             type="password"
             placeholder="••••••••"
             icon="i-lucide-lock"
           />
-        </UFormGroup>
+        </UFormField>
 
         <!-- Confirmar contraseña (solo en registro) -->
-        <UFormGroup v-if="!isLogin" label="Confirmar contraseña" name="confirm_password" required>
+        <UFormField v-if="!isLogin" label="Confirmar contraseña" name="confirm_password" required>
           <UInput
             v-model="form.confirm_password"
             type="password"
             placeholder="••••••••"
             icon="i-lucide-lock"
           />
-        </UFormGroup>
+        </UFormField>
 
         <!-- Error message -->
         <UAlert
@@ -91,7 +91,7 @@
         </div>
 
         <!-- Divider -->
-        <UDivider label="O" />
+        <USeparator label="O" />
 
         <!-- Social login -->
         <div class="space-y-2">
