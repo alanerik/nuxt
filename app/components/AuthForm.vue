@@ -16,7 +16,7 @@
             v-model="form.email"
             type="email"
             placeholder="tu@email.com"
-            icon="i-heroicons-envelope"
+            icon="i-lucide-mail"
           />
         </UFormGroup>
 
@@ -26,7 +26,7 @@
             v-model="form.full_name"
             type="text"
             placeholder="Juan Pérez"
-            icon="i-heroicons-user"
+            icon="i-lucide-user"
           />
         </UFormGroup>
 
@@ -36,7 +36,7 @@
             v-model="form.password"
             type="password"
             placeholder="••••••••"
-            icon="i-heroicons-lock-closed"
+            icon="i-lucide-lock"
           />
         </UFormGroup>
 
@@ -46,7 +46,7 @@
             v-model="form.confirm_password"
             type="password"
             placeholder="••••••••"
-            icon="i-heroicons-lock-closed"
+            icon="i-lucide-lock"
           />
         </UFormGroup>
 
@@ -56,7 +56,7 @@
           color="red"
           variant="soft"
           :title="error"
-          :close-button="{ icon: 'i-heroicons-x-mark-20-solid', color: 'red', variant: 'link' }"
+          :close-button="{ icon: 'i-lucide-x', color: 'red', variant: 'link' }"
           @close="error = null"
         />
 
@@ -103,7 +103,7 @@
             :disabled="loading"
           >
             <template #leading>
-              <Icon name="logos:google-icon" />
+              <UIcon name="i-simple-icons-google" class="size-5" />
             </template>
             Continuar con Google
           </UButton>
@@ -209,7 +209,7 @@ const handleRegister = async () => {
     throw new Error('La contraseña debe tener al menos 6 caracteres')
   }
 
-  const { data, error: signUpError } = await supabase.auth.signUp({
+  const { error: signUpError } = await supabase.auth.signUp({
     email: form.value.email,
     password: form.value.password,
     options: {
@@ -222,20 +222,7 @@ const handleRegister = async () => {
 
   if (signUpError) throw signUpError
 
-  // Crear perfil
-  if (data.user) {
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert({
-        id: data.user.id,
-        email: form.value.email,
-        full_name: form.value.full_name,
-        role: props.role
-      })
-
-    if (profileError) throw profileError
-  }
-
+  // El perfil se crea automáticamente via trigger en la base de datos
   success.value = 'Cuenta creada exitosamente. Revisa tu email para confirmar.'
 }
 
