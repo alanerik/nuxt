@@ -1,2 +1,23 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+/* Custom styles for dashboard */
+:root {
+    --header-height: 4rem;
+}
+
+/* Smooth transitions for theme changes */
+html.dark {
+    color-scheme: dark;
+}
+
+/* Dashboard specific styles */
+.dashboard-fade-enter-active,
+.dashboard-fade-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.dashboard-fade-enter-from,
+.dashboard-fade-leave-to {
+    opacity: 0;
+}
