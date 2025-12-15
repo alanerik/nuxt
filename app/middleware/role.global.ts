@@ -68,7 +68,7 @@ export const useUserRole = () => {
             .eq('id', user.value.id)
             .single()
 
-        role.value = data?.role || null
+        role.value = (data as any)?.role || null
         profile.value = data
         loading.value = false
     }
