@@ -53,7 +53,7 @@
         <!-- Error message -->
         <UAlert
           v-if="error"
-          color="red"
+          color="error"
           variant="soft"
           :title="error"
           :close-button="{ icon: 'i-lucide-x', color: 'red', variant: 'link' }"
@@ -63,7 +63,7 @@
         <!-- Success message -->
         <UAlert
           v-if="success"
-          color="green"
+          color="success"
           variant="soft"
           :title="success"
         />
@@ -97,7 +97,7 @@
         <div class="space-y-2">
           <UButton
             block
-            color="gray"
+            color="neutral"
             variant="outline"
             @click="handleSocialLogin('google')"
             :disabled="loading"
@@ -195,7 +195,9 @@ const handleLogin = async () => {
     .eq('id', data.user.id)
     .single()
 
-  if (profile?.role !== props.role) {
+  const userRole = (profile as any)?.role
+
+  if (userRole !== props.role) {
     await supabase.auth.signOut()
     throw new Error('No tienes permisos para acceder a esta área')
   }
