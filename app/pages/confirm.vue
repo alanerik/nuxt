@@ -5,7 +5,7 @@
       <div v-if="state === 'error'" class="space-y-4">
         <UAlert
           icon="i-lucide-alert-circle"
-          color="red"
+          color="error"
           variant="soft"
           :title="errorTitle"
           :description="errorMessage"
@@ -28,7 +28,7 @@
           <!-- Botón volver a intentar (otros errores) -->
           <UButton
             v-else
-            color="gray"
+            color="neutral"
             block
             icon="i-lucide-rotate-cw"
             @click="retry"
@@ -38,7 +38,7 @@
 
           <!-- Siempre mostrar botón para ir a login -->
           <UButton
-            color="gray"
+            color="neutral"
             variant="ghost"
             block
             icon="i-lucide-log-in"
@@ -54,7 +54,7 @@
           <span>Redirigiendo automáticamente en {{ countdown }}s</span>
           <UButton
             size="xs"
-            color="gray"
+            color="neutral"
             variant="ghost"
             @click="cancelAutoRedirect"
           >
@@ -67,7 +67,7 @@
       <div v-else-if="state === 'success'" class="space-y-4">
         <UAlert
           icon="i-lucide-check-circle"
-          color="green"
+          color="success"
           variant="soft"
           title="¡Verificación Exitosa!"
           description="Redirigiendo a tu dashboard..."
@@ -82,14 +82,14 @@
       <div v-else-if="state === 'resent'" class="space-y-4">
         <UAlert
           icon="i-lucide-mail-check"
-          color="blue"
+          color="info"
           variant="soft"
           title="Correo Reenviado"
           description="Revisa tu bandeja de entrada y haz clic en el nuevo enlace de confirmación."
         />
         
         <UButton
-          color="gray"
+          color="neutral"
           block
           icon="i-lucide-log-in"
           @click="goToLogin"
@@ -196,7 +196,7 @@ const resendConfirmationEmail = async () => {
     toast.add({
       title: 'Error',
       description: 'No se encontró el email del usuario',
-      color: 'red'
+      color: 'error'
     })
     return
   }
@@ -216,7 +216,7 @@ const resendConfirmationEmail = async () => {
     toast.add({
       title: 'Correo enviado',
       description: 'Revisa tu bandeja de entrada',
-      color: 'green'
+      color: 'success'
     })
   } catch (err: any) {
     console.error('Error reenviando email:', err)
@@ -224,7 +224,7 @@ const resendConfirmationEmail = async () => {
     toast.add({
       title: 'Error al reenviar',
       description: err.message || 'No se pudo reenviar el correo',
-      color: 'red'
+      color: 'error'
     })
   } finally {
     isResending.value = false
@@ -317,13 +317,15 @@ const handleRedirect = async () => {
 
     if (profileError) throw profileError
 
-    if (!profile?.role) {
+    const userRole = (profile as any)?.role
+
+    if (!userRole) {
       throw new Error('No se encontró el rol del usuario')
     }
 
     // Éxito - redirigir al dashboard
     state.value = 'success'
-    const dashboardPath = `/${profile.role}/dashboard`
+    const dashboardPath = `/${userRole}/dashboard`
     
     // Redirección más rápida en éxito
     await redirectWithCountdown(dashboardPath, 1500, true)
