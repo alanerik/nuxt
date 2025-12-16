@@ -1,7 +1,8 @@
 // middleware/role.global.ts
-export default defineNuxtRouteMiddleware(async (to, from) => {
+export default defineNuxtRouteMiddleware(async (to) => {
     const user = useSupabaseUser()
     const supabase = useSupabaseClient()
+    const { role, fetchRole, clearRole } = useUserRole()
 
     // ===== 1. RUTAS PÚBLICAS =====
     const publicRoutes = ['/', '/login', '/register', '/confirm', '/reset-password']
@@ -17,12 +18,13 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
         return navigateTo('/login')
     }
 
-    // ===== 3. OBTENER ROL (CON CACHÉ) =====
-    const userRole = await getUserRole(user.value.id, supabase)
+    // ===== 3. OBTENER ROL (usando el composable con caché) =====
+    const userRole = await fetchRole()
 
     if (!userRole) {
         console.error('No role found for user, signing out')
         await supabase.auth.signOut()
+        clearRole()
         return navigateTo('/login')
     }
 
@@ -37,7 +39,6 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     }
 
     // ===== 5. PREVENIR ACCESO A RUTAS DE OTROS ROLES =====
-    // Si la ruta no tiene prefijo de rol, verificar que no sea una ruta protegida
     if (!roleFromPath) {
         const protectedPrefixes = ['admin', 'inquilino', 'agente']
         const hasRolePrefix = protectedPrefixes.some(prefix => to.path.includes(`/${prefix}/`))
@@ -49,54 +50,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     }
 })
 
-// ===== HELPERS =====
-
-// Caché simple del rol (se limpia cuando cambia el usuario)
-const roleCache = new Map<string, { role: string; timestamp: number }>()
-const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
-
-/**
- * Obtiene el rol del usuario con caché
- */
-async function getUserRole(userId: string, supabase: any): Promise<string | null> {
-    // Verificar caché
-    const cached = roleCache.get(userId)
-    const now = Date.now()
-
-    if (cached && (now - cached.timestamp) < CACHE_DURATION) {
-        return cached.role
-    }
-
-    // Consultar a Supabase
-    try {
-        const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', userId)
-            .single()
-
-        if (error) throw error
-
-        if (!profile?.role) {
-            throw new Error('No role found in profile')
-        }
-
-        // Guardar en caché
-        roleCache.set(userId, {
-            role: profile.role,
-            timestamp: now
-        })
-
-        return profile.role
-    } catch (error) {
-        console.error('Error fetching user role:', error)
-
-        // Limpiar caché del usuario
-        roleCache.delete(userId)
-
-        return null
-    }
-}
+// ===== HELPER FUNCTIONS =====
 
 /**
  * Extrae el rol de la ruta (ej: /admin/dashboard -> 'admin')
@@ -111,23 +65,4 @@ function extractRoleFromPath(path: string): string | null {
     }
 
     return null
-}
-
-/**
- * Limpia el caché cuando cambia el usuario
- */
-if (import.meta.client) {
-    const user = useSupabaseUser()
-
-    watch(user, (newUser, oldUser) => {
-        // Si cambió el usuario, limpiar caché del usuario anterior
-        if (oldUser?.id && oldUser.id !== newUser?.id) {
-            roleCache.delete(oldUser.id)
-        }
-
-        // Si se cerró sesión, limpiar todo el caché
-        if (!newUser) {
-            roleCache.clear()
-        }
-    })
 }
