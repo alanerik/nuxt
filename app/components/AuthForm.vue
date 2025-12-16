@@ -217,6 +217,7 @@ const handleRegister = async () => {
     email: form.value.email,
     password: form.value.password,
     options: {
+      emailRedirectTo: `${window.location.origin}/confirm`,
       data: {
         full_name: form.value.full_name,
         role: 'inquilino' // Siempre registrar como inquilino por defecto
