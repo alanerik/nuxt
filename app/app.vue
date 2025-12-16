@@ -1,8 +1,8 @@
 <script setup lang="ts">
 const colorMode = useColorMode()
 
-// Inicializar watcher de caché de roles
-useRoleCacheWatcher()
+// Inicializar watcher de roles (estado global)
+useUserRole()
 
 const color = computed(() => colorMode.value === 'dark' ? '#1b1718' : 'white')
 
