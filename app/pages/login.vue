@@ -14,7 +14,7 @@
         <UButton
           block
           size="lg"
-          color="red"
+          color="error"
           @click="selectedRole = 'admin'"
         >
           <template #leading>
@@ -26,7 +26,7 @@
         <UButton
           block
           size="lg"
-          color="blue"
+          color="primary"
           @click="selectedRole = 'inquilino'"
         >
           <template #leading>
@@ -38,7 +38,7 @@
         <UButton
           block
           size="lg"
-          color="green"
+          color="success"
           @click="selectedRole = 'agente'"
         >
           <template #leading>
@@ -86,11 +86,11 @@ const roleTitle = computed(() => {
 })
 
 const roleColor = computed(() => {
-  const colors = {
-    admin: 'red',
-    inquilino: 'blue',
-    agente: 'green'
+  const colors: Record<string, 'error' | 'primary' | 'success'> = {
+    admin: 'error',
+    inquilino: 'primary',
+    agente: 'success'
   }
-  return selectedRole.value ? colors[selectedRole.value] : 'gray'
+  return selectedRole.value ? colors[selectedRole.value] : 'neutral'
 })
 </script>
