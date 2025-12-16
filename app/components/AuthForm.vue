@@ -258,7 +258,7 @@ const handleSocialLogin = async (provider: 'google') => {
 
 // Redirect if already logged in
 watch(user, (newUser) => {
-  if (newUser) {
+  if (newUser && !loading.value) {
     router.push(redirectPath.value)
   }
 })
