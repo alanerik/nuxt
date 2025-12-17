@@ -1,16 +1,92 @@
-<!-- components/AuthForm.vue -->
+<script setup lang="ts">
+import { useAuth } from '@/composables/useAuth'
+
+const props = defineProps<{
+  role: 'admin' | 'inquilino' | 'agente'
+}>()
+
+const { signIn, signUp, socialLogin, loading, error } = useAuth()
+const url = useRequestURL()
+
+const isLogin = ref(true)
+const success = ref<string | null>(null)
+
+const form = ref({
+  email: '',
+  password: '',
+  full_name: '',
+  confirm_password: ''
+})
+
+const config = {
+  admin: { title: 'Panel de Administrador', redirect: '/admin/dashboard' },
+  inquilino: { title: 'Portal de Inquilino', redirect: '/inquilino/dashboard' },
+  agente: { title: 'Portal de Agente', redirect: '/agente/dashboard' }
+}
+
+const currentConfig = config[props.role]
+
+const toggleMode = () => {
+  isLogin.value = !isLogin.value
+  error.value = null
+  success.value = null
+}
+
+const handleSubmit = async () => {
+  success.value = null
+  
+  if (isLogin.value) {
+    await signIn(
+      form.value.email, 
+      form.value.password, 
+      props.role, 
+      currentConfig.redirect
+    )
+  } else {
+    // Validación UI
+    if (form.value.password !== form.value.confirm_password) {
+      error.value = 'Las contraseñas no coinciden'
+      return
+    }
+    
+    if (form.value.password.length < 6) {
+      error.value = 'La contraseña debe tener al menos 6 caracteres'
+      return
+    }
+    
+    const registered = await signUp(
+      form.value.email, 
+      form.value.password, 
+      form.value.full_name, 
+      props.role,
+      url.origin
+    )
+    
+    if (registered) {
+      success.value = 'Cuenta creada. Revisa tu email para confirmar.'
+      isLogin.value = true
+    }
+  }
+}
+
+const handleSocialLogin = async (provider: 'google') => {
+  await socialLogin(provider, `${url.origin}${currentConfig.redirect}`)
+}
+</script>
+
 <template>
   <div class="w-full max-w-md mx-auto p-6">
     <UCard>
       <template #header>
         <div class="text-center">
-          <h2 class="text-2xl font-bold">{{ isLogin ? 'Iniciar Sesión' : 'Registrarse' }}</h2>
-          <p class="text-gray-500 mt-2">{{ roleTitle }}</p>
+          <h2 class="text-2xl font-bold">
+            {{ isLogin ? 'Iniciar Sesión' : 'Registrarse' }}
+          </h2>
+          <p class="text-gray-500 mt-2">{{ currentConfig.title }}</p>
         </div>
       </template>
 
       <UForm :state="form" @submit="handleSubmit" class="space-y-4">
-        <!-- Email -->
         <UFormField label="Email" name="email" required>
           <UInput
             v-model="form.email"
@@ -20,7 +96,6 @@
           />
         </UFormField>
 
-        <!-- Nombre completo (solo en registro) -->
         <UFormField v-if="!isLogin" label="Nombre completo" name="full_name" required>
           <UInput
             v-model="form.full_name"
@@ -30,7 +105,6 @@
           />
         </UFormField>
 
-        <!-- Contraseña -->
         <UFormField label="Contraseña" name="password" required>
           <UInput
             v-model="form.password"
@@ -40,7 +114,6 @@
           />
         </UFormField>
 
-        <!-- Confirmar contraseña (solo en registro) -->
         <UFormField v-if="!isLogin" label="Confirmar contraseña" name="confirm_password" required>
           <UInput
             v-model="form.confirm_password"
@@ -50,17 +123,15 @@
           />
         </UFormField>
 
-        <!-- Error message -->
         <UAlert
           v-if="error"
           color="error"
           variant="soft"
           :title="error"
-          :close-button="{ icon: 'i-lucide-x', color: 'red', variant: 'link' }"
+          :close-button="{ icon: 'i-lucide-x', color: 'error', variant: 'link' }"
           @close="error = null"
         />
 
-        <!-- Success message -->
         <UAlert
           v-if="success"
           color="success"
@@ -68,7 +139,6 @@
           :title="success"
         />
 
-        <!-- Submit button -->
         <UButton
           type="submit"
           block
@@ -79,7 +149,6 @@
           {{ isLogin ? 'Iniciar Sesión' : 'Crear Cuenta' }}
         </UButton>
 
-        <!-- Toggle login/register -->
         <div class="text-center">
           <UButton
             variant="link"
@@ -90,176 +159,21 @@
           </UButton>
         </div>
 
-        <!-- Divider -->
         <USeparator label="O" />
 
-        <!-- Social login -->
-        <div class="space-y-2">
-          <UButton
-            block
-            color="neutral"
-            variant="outline"
-            @click="handleSocialLogin('google')"
-            :disabled="loading"
-          >
-            <template #leading>
-              <UIcon name="i-simple-icons-google" class="size-5" />
-            </template>
-            Continuar con Google
-          </UButton>
-        </div>
+        <UButton
+          block
+          color="neutral"
+          variant="outline"
+          @click="handleSocialLogin('google')"
+          :disabled="loading"
+        >
+          <template #leading>
+            <UIcon name="i-simple-icons-google" class="size-5" />
+          </template>
+          Continuar con Google
+        </UButton>
       </UForm>
     </UCard>
   </div>
 </template>
-
-<script setup lang="ts">
-const props = defineProps<{
-  role: 'admin' | 'inquilino' | 'agente'
-}>()
-
-const supabase = useSupabaseClient()
-const user = useSupabaseUser()
-const router = useRouter()
-
-const isLogin = ref(true)
-const loading = ref(false)
-const error = ref<string | null>(null)
-const success = ref<string | null>(null)
-
-const form = ref({
-  email: '',
-  password: '',
-  full_name: '',
-  confirm_password: ''
-})
-
-const roleTitle = computed(() => {
-  const titles = {
-    admin: 'Panel de Administrador',
-    inquilino: 'Portal de Inquilino',
-    agente: 'Portal de Agente'
-  }
-  return titles[props.role]
-})
-
-const redirectPath = computed(() => {
-  const paths = {
-    admin: '/admin/dashboard',
-    inquilino: '/inquilino/dashboard',
-    agente: '/agente/dashboard'
-  }
-  return paths[props.role]
-})
-
-const toggleMode = () => {
-  isLogin.value = !isLogin.value
-  error.value = null
-  success.value = null
-}
-
-const handleSubmit = async () => {
-  error.value = null
-  success.value = null
-  loading.value = true
-
-  try {
-    if (isLogin.value) {
-      await handleLogin()
-    } else {
-      await handleRegister()
-    }
-  } catch (e: any) {
-    error.value = e.message || 'Ocurrió un error'
-  } finally {
-    loading.value = false
-  }
-}
-
-const handleLogin = async () => {
-  const { data, error: signInError } = await supabase.auth.signInWithPassword({
-    email: form.value.email,
-    password: form.value.password
-  })
-
-  if (signInError) throw signInError
-
-  if (!data.user?.id) {
-    throw new Error('Error al iniciar sesión: No se pudo obtener la información del usuario')
-  }
-
-  // Verificar que el usuario tenga el rol correcto
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', data.user.id)
-    .single()
-
-  const userRole = (profile as any)?.role
-
-  if (userRole !== props.role) {
-    await supabase.auth.signOut()
-    throw new Error('No tienes permisos para acceder a esta área')
-  }
-
-  router.push(redirectPath.value)
-}
-
-const handleRegister = async () => {
-  // Validaciones
-  if (form.value.password !== form.value.confirm_password) {
-    throw new Error('Las contraseñas no coinciden')
-  }
-
-  if (form.value.password.length < 6) {
-    throw new Error('La contraseña debe tener al menos 6 caracteres')
-  }
-
-  const { error: signUpError } = await supabase.auth.signUp({
-    email: form.value.email,
-    password: form.value.password,
-    options: {
-      emailRedirectTo: `${window.location.origin}/confirm`,
-      data: {
-        full_name: form.value.full_name,
-        role: 'inquilino' // Siempre registrar como inquilino por defecto
-      }
-    }
-  })
-
-  if (signUpError) throw signUpError
-
-  // El perfil se crea automáticamente via trigger en la base de datos
-  success.value = 'Cuenta creada exitosamente. Revisa tu email para confirmar.'
-}
-
-const handleSocialLogin = async (provider: 'google') => {
-  loading.value = true
-  error.value = null
-
-  try {
-    const { error: signInError } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}${redirectPath.value}`,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent'
-        }
-      }
-    })
-
-    if (signInError) throw signInError
-  } catch (e: any) {
-    error.value = e.message || 'Error al iniciar sesión con Google'
-    loading.value = false
-  }
-}
-
-// Redirect if already logged in
-watch(user, (newUser) => {
-  if (newUser && !loading.value) {
-    router.push(redirectPath.value)
-  }
-})
-</script>
