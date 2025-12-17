@@ -18,21 +18,21 @@ export const useUserRole = () => {
         return role.value === requiredRole
     }
 
-    // Verificar si es admin
+    // Computed helpers
     const isAdmin = computed(() => role.value === 'admin')
     const isAgente = computed(() => role.value === 'agente')
     const isInquilino = computed(() => role.value === 'inquilino')
 
     // Cargar el rol del usuario
-    const fetchRole = async (force = false) => {
+    const fetchRole = async (force = false): Promise<string | null> => {
         if (!user.value) {
             role.value = null
-            return
+            return null
         }
 
-        // Si ya tenemos el rol y no es forzado, no volver a cargar
+        // Si ya tenemos el rol y no es forzado, retornar caché
         if (role.value && !force) {
-            return
+            return role.value
         }
 
         loading.value = true
@@ -52,24 +52,32 @@ export const useUserRole = () => {
             }
 
             role.value = profile.role
+            return profile.role
         } catch (err: any) {
             console.error('Error fetching user role:', err)
             error.value = err
             role.value = null
+            return null
         } finally {
             loading.value = false
         }
     }
 
-    // Limpiar el rol cuando el usuario cambia
+    // Limpiar el rol
+    const clearRole = () => {
+        role.value = null
+        error.value = null
+    }
+
+    // Limpiar y recargar cuando el usuario cambia
     watch(user, (newUser, oldUser) => {
-        if (oldUser?.id && oldUser.id !== newUser?.id) {
-            role.value = null
+        // Si cambió de usuario o se deslogueó
+        if (oldUser?.id !== newUser?.id) {
+            clearRole()
         }
 
-        if (!newUser) {
-            role.value = null
-        } else if (newUser && !role.value) {
+        // Si hay usuario nuevo sin rol, cargar
+        if (newUser && !role.value) {
             fetchRole()
         }
     }, { immediate: true })
@@ -82,7 +90,8 @@ export const useUserRole = () => {
         isAdmin,
         isAgente,
         isInquilino,
-        fetchRole
+        fetchRole,
+        clearRole
     }
 }
 
