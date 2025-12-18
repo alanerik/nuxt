@@ -24,14 +24,19 @@ export const useUserRole = () => {
     const isInquilino = computed(() => role.value === 'inquilino')
 
     // Cargar el rol del usuario
-    const fetchRole = async (force = false): Promise<string | null> => {
-        if (!user.value) {
+    const fetchRole = async (force = false, userId?: string): Promise<string | null> => {
+        const targetId = userId || user.value?.id
+        console.log('[useUserRole] fetchRole called. Target ID:', targetId, 'Force:', force)
+
+        if (!targetId) {
+            console.warn('[useUserRole] No target ID, resetting role')
             role.value = null
             return null
         }
 
         // Si ya tenemos el rol y no es forzado, retornar caché
         if (role.value && !force) {
+            console.log('[useUserRole] Returning cached role:', role.value)
             return role.value
         }
 
@@ -39,22 +44,28 @@ export const useUserRole = () => {
         error.value = null
 
         try {
+            console.log('[useUserRole] Querying profiles for ID:', targetId)
             const { data: profile, error: profileError } = await supabase
                 .from('profiles')
                 .select('role')
-                .eq('id', user.value.id)
-                .single()
+                .eq('id', targetId)
+                .single() as any
 
-            if (profileError) throw profileError
+            if (profileError) {
+                console.error('[useUserRole] Profile error:', profileError)
+                throw profileError
+            }
 
             if (!profile?.role) {
+                console.warn('[useUserRole] No role in profile')
                 throw new Error('No se encontró el rol del usuario')
             }
 
+            console.log('[useUserRole] Role found:', profile.role)
             role.value = profile.role
             return profile.role
         } catch (err: any) {
-            console.error('Error fetching user role:', err)
+            console.error('[useUserRole] Error fetching user role:', err)
             error.value = err
             role.value = null
             return null

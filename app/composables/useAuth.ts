@@ -4,13 +4,24 @@ export const useAuth = () => {
 
     const loading = ref(false)
     const error = ref<string | null>(null)
+    const lastAttempt = ref(0)
+
+    const COOLDOWN_MS = 2000
 
     const signIn = async (
         email: string,
         pass: string,
         expectedRole: string,
         redirect: string
-    ) => {
+    ): Promise<void> => {
+        // Rate limiting
+        const now = Date.now()
+        if (now - lastAttempt.value < COOLDOWN_MS) {
+            error.value = 'Por favor espera un momento'
+            return
+        }
+        lastAttempt.value = now
+
         loading.value = true
         error.value = null
 
@@ -20,9 +31,16 @@ export const useAuth = () => {
                 password: pass
             })
 
-            if (err) throw err
+            if (err) {
+                if (err.message.includes('Invalid login credentials')) {
+                    throw new Error('Email o contraseña incorrectos')
+                }
+                if (err.message.includes('Email not confirmed')) {
+                    throw new Error('Debes confirmar tu email antes de iniciar sesión')
+                }
+                throw err
+            }
 
-            // Verificación de rol con manejo de error
             const { data: profile, error: profileErr } = await supabase
                 .from('profiles')
                 .select('role')
@@ -53,7 +71,14 @@ export const useAuth = () => {
         fullName: string,
         role: string,
         redirectOrigin: string
-    ) => {
+    ): Promise<boolean> => {
+        const now = Date.now()
+        if (now - lastAttempt.value < COOLDOWN_MS) {
+            error.value = 'Por favor espera un momento'
+            return false
+        }
+        lastAttempt.value = now
+
         loading.value = true
         error.value = null
 
@@ -67,7 +92,16 @@ export const useAuth = () => {
                 }
             })
 
-            if (err) throw err
+            if (err) {
+                if (err.message.includes('already registered')) {
+                    throw new Error('Este email ya está registrado')
+                }
+                if (err.message.includes('Password should be')) {
+                    throw new Error('La contraseña debe tener al menos 6 caracteres')
+                }
+                throw err
+            }
+
             return true
         } catch (e: any) {
             error.value = e.message
@@ -77,7 +111,10 @@ export const useAuth = () => {
         }
     }
 
-    const socialLogin = async (provider: 'google', redirectUrl: string) => {
+    const socialLogin = async (
+        provider: 'google',
+        redirectUrl: string
+    ): Promise<void> => {
         loading.value = true
         error.value = null
 

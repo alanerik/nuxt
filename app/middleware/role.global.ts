@@ -1,7 +1,8 @@
 export default defineNuxtRouteMiddleware(async (to) => {
-    const user = useSupabaseUser()
     const supabase = useSupabaseClient()
     const { fetchRole, clearRole } = useUserRole()
+
+    const { data: { user } } = await supabase.auth.getUser()
 
     // ===== 1. RUTAS PÚBLICAS =====
     const publicPaths = ['/', '/login', '/register', '/confirm', '/reset-password']
@@ -10,12 +11,12 @@ export default defineNuxtRouteMiddleware(async (to) => {
     }
 
     // ===== 2. VERIFICAR AUTENTICACIÓN =====
-    if (!user.value) {
+    if (!user) {
         return navigateTo('/login', { replace: true })
     }
 
-    // ===== 3. OBTENER ROL (con caché automática) =====
-    const userRole = await fetchRole() // ✅ Retorna el rol directamente
+    // ===== 3. OBTENER ROL =====
+    const userRole = await fetchRole(false, user.id)
 
     if (!userRole) {
         await supabase.auth.signOut()
