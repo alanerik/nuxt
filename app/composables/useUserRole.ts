@@ -23,9 +23,14 @@ export const useUserRole = () => {
     const isAgente = computed(() => role.value === 'agente')
     const isInquilino = computed(() => role.value === 'inquilino')
 
+    // Estado interno para deduplicar llamadas
+    let _fetchPromise: Promise<string | null> | null = null
+
     // Cargar el rol del usuario
-    const fetchRole = async (force = false): Promise<string | null> => {
-        if (!user.value?.id) {
+    const fetchRole = async (force = false, userId?: string): Promise<string | null> => {
+        const targetId = userId || user.value?.id
+
+        if (!targetId) {
             role.value = null
             return null
         }
@@ -35,32 +40,42 @@ export const useUserRole = () => {
             return role.value
         }
 
+        // Si ya hay una petición en curso, retornar la misma promesa
+        if (_fetchPromise && !force) {
+            return _fetchPromise
+        }
+
         loading.value = true
         error.value = null
 
-        try {
-            const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', user.value.id)
-                .single() as any
+        _fetchPromise = (async () => {
+            try {
+                const { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', targetId)
+                    .single() as any
 
-            if (profileError) throw profileError
+                if (profileError) throw profileError
 
-            if (!profile?.role) {
-                throw new Error('No se encontró el rol del usuario')
+                if (!profile?.role) {
+                    throw new Error('No se encontró el rol del usuario')
+                }
+
+                role.value = profile.role
+                return profile.role
+            } catch (err: any) {
+                console.error('Error fetching user role:', err)
+                error.value = err
+                role.value = null
+                return null
+            } finally {
+                loading.value = false
+                _fetchPromise = null
             }
+        })()
 
-            role.value = profile.role
-            return profile.role
-        } catch (err: any) {
-            console.error('Error fetching user role:', err)
-            error.value = err
-            role.value = null
-            return null
-        } finally {
-            loading.value = false
-        }
+        return _fetchPromise
     }
 
     // Limpiar el rol

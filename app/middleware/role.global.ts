@@ -5,7 +5,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     const { data: { user } } = await supabase.auth.getUser()
 
     // ===== 1. RUTAS PÚBLICAS =====
-    const publicPaths = ['/', '/login', '/register', '/confirm', '/reset-password']
+    const publicPaths = ['/', '/login', '/register', '/confirm', '/reset-password', '/update-password']
     if (publicPaths.some(path => to.path === path || to.path.startsWith(`${path}/`))) {
         return
     }
@@ -34,5 +34,5 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
 function extractRoleFromPath(path: string): string | null {
     const match = path.match(/^\/(admin|inquilino|agente)/)
-    return match ? match[1] : null
+    return match ? (match[1] || null) : null
 }

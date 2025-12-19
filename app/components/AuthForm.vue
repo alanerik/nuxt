@@ -148,7 +148,16 @@ const handleSocialLogin = async (provider: 'google') => {
         >
           {{ isLogin ? 'Iniciar Sesión' : 'Crear Cuenta' }}
         </UButton>
-
+<div v-if="isLogin" class="text-center">
+  <UButton
+    to="/reset-password"
+    variant="link"
+    size="sm"
+    :disabled="loading"
+  >
+    ¿Olvidaste tu contraseña?
+  </UButton>
+</div>
         <div class="text-center">
           <UButton
             variant="link"

@@ -45,7 +45,7 @@ export const useAuth = () => {
                 .from('profiles')
                 .select('role')
                 .eq('id', data.user.id)
-                .single()
+                .single() as any
 
             if (profileErr) {
                 await supabase.auth.signOut()
