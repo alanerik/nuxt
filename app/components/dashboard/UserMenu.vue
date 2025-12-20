@@ -7,12 +7,13 @@ defineProps<{
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
+const { role } = useUserRole()
 const router = useRouter()
 const colorMode = useColorMode()
+const toast = useToast()
 
 const loading = ref(false)
 
-// User display info
 const userDisplayName = computed(() => {
   if (!user.value) return 'Usuario'
   return user.value.user_metadata?.full_name || user.value.email?.split('@')[0] || 'Usuario'
@@ -25,18 +26,39 @@ const userInitials = computed(() => {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
 })
 
-// Theme toggle
+const roleLabel = computed(() => {
+  const labels: Record<string, string> = {
+    admin: 'Administrador',
+    agente: 'Agente',
+    inquilino: 'Inquilino'
+  }
+  return labels[role.value || ''] || 'Usuario'
+})
+
 const isDark = computed({
   get: () => colorMode.value === 'dark',
   set: (value) => colorMode.preference = value ? 'dark' : 'light'
 })
 
-// Logout handler
 const handleLogout = async () => {
   loading.value = true
+  
   try {
     await supabase.auth.signOut()
-    router.push('/login')
+    
+    toast.add({
+      title: 'Sesión cerrada',
+      description: 'Has cerrado sesión correctamente',
+      color: 'success'
+    })
+    
+    await router.push('/login')
+  } catch (error) {
+    toast.add({
+      title: 'Error',
+      description: 'No se pudo cerrar la sesión',
+      color: 'error'
+    })
   } finally {
     loading.value = false
   }
@@ -55,14 +77,14 @@ const items = computed<DropdownMenuItem[][]>(() => [[
     label: 'Mi Perfil',
     icon: 'i-lucide-user',
     onSelect: () => {
-      // TODO: Navigate to profile
+      router.push(`/${role.value}/perfil`)
     }
   },
   {
     label: 'Configuración',
     icon: 'i-lucide-settings',
     onSelect: () => {
-      // TODO: Navigate to settings
+      router.push(`/${role.value}/configuracion`)
     }
   }
 ], [
@@ -92,7 +114,12 @@ const items = computed<DropdownMenuItem[][]>(() => [[
     >
       <UAvatar :text="userInitials" size="sm" />
       <template v-if="!collapsed">
-        <span class="truncate font-medium">{{ userDisplayName }}</span>
+        <div class="flex-1 text-left overflow-hidden">
+          <span class="block truncate font-medium text-sm">{{ userDisplayName }}</span>
+          <span class="block truncate text-xs text-gray-500 dark:text-gray-400 capitalize">
+            {{ roleLabel }}
+          </span>
+        </div>
         <UIcon name="i-lucide-chevrons-up-down" class="ml-auto size-4 shrink-0 text-muted" />
       </template>
     </UButton>
