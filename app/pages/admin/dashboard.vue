@@ -69,7 +69,7 @@ const activities = ref([
             </UButton>
           </UTooltip>
 
-          <UButton icon="i-lucide-plus" size="md" class="rounded-full">
+          <UButton icon="i-lucide-plus" size="md" class="rounded-full" to="/admin/propiedades/nueva">
             Nueva Propiedad
           </UButton>
         </template>
