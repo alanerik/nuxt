@@ -270,27 +270,11 @@ const handleSubmit = async () => {
     <template #header>
       <UDashboardNavbar title="Editar Propiedad">
         <template #leading>
-          <UButton
-            variant="ghost"
-            icon="i-lucide-arrow-left"
-            to="/admin/propiedades"
-          >
-            Volver
-          </UButton>
-        </template>
-
-        <template #right>
-          <UButton
-            :loading="saving"
-            :disabled="!isFormValid || loading"
-            icon="i-lucide-save"
-            @click="handleSubmit"
-          >
-            Guardar Cambios
-          </UButton>
+          <UDashboardSidebarCollapse />
         </template>
       </UDashboardNavbar>
     </template>
+
 
     <template #body>
       <div v-if="loading" class="p-6 text-center">
