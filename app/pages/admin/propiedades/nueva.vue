@@ -223,27 +223,12 @@ const handleSubmit = async () => {
     <template #header>
       <UDashboardNavbar title="Nueva Propiedad">
         <template #leading>
-          <UButton
-            variant="ghost"
-            icon="i-lucide-arrow-left"
-            to="/admin/propiedades"
-          >
-            Volver
-          </UButton>
-        </template>
-
-        <template #right>
-          <UButton
-            :loading="loading"
-            :disabled="!isFormValid"
-            icon="i-lucide-check"
-            @click="handleSubmit"
-          >
-            Publicar Propiedad
-          </UButton>
+          <UDashboardSidebarCollapse />
         </template>
       </UDashboardNavbar>
     </template>
+
+
 
     <template #body>
       <div class="max-w-4xl mx-auto p-6 space-y-8">
