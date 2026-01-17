@@ -202,16 +202,33 @@ export const useContracts = () => {
      */
     const fetchAvailableProperties = async () => {
         try {
+            // Query simplificada - filtramos en cliente para evitar errores de tipos
             const { data, error: fetchError } = await supabase
                 .from('properties')
                 .select('id, title, address, city, images, operation_type, price, currency, status')
-                .in('operation_type', ['alquiler', 'alquiler_temporal'])
-                .in('status', ['disponible', 'reservada']) // Disponibles o reservadas (no alquiladas)
-                .order('title', { ascending: true })
+                .order('title', { ascending: true }) as {
+                    data: Array<{
+                        id: string
+                        title: string
+                        address: string
+                        city: string
+                        images: string[] | null
+                        operation_type: string
+                        price: number
+                        currency: string
+                        status: string
+                    }> | null, error: Error | null
+                }
 
             if (fetchError) throw fetchError
 
-            return data || []
+            // Filtrar en cliente: solo alquiler/temporal y disponible/reservada
+            const filtered = (data || []).filter(p =>
+                (p.operation_type === 'alquiler' || p.operation_type === 'alquiler_temporal') &&
+                (p.status === 'disponible' || p.status === 'reservada')
+            )
+
+            return filtered
         } catch (e) {
             const err = e instanceof Error ? e : new Error(String(e))
             console.error('Error fetching available properties:', err)

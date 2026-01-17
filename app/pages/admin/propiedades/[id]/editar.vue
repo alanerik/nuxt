@@ -126,6 +126,15 @@ const propertyTypes = [
   { value: 'cochera', label: 'Cochera', icon: 'i-lucide-car' }
 ]
 
+// Estados de propiedad
+const propertyStatuses = [
+  { value: 'disponible', label: 'Disponible', color: 'success' },
+  { value: 'reservada', label: 'Reservada', color: 'warning' },
+  { value: 'alquilada', label: 'Alquilada', color: 'info' },
+  { value: 'vendida', label: 'Vendida', color: 'error' },
+  { value: 'en_mantenimiento', label: 'En mantenimiento', color: 'neutral' }
+]
+
 // Manejo de imágenes
 const handleImageUpload = (event: Event) => {
   const target = event.target as HTMLInputElement
@@ -416,6 +425,25 @@ const handleSubmit = async () => {
                     : 'border-default hover:border-primary/50'"
                 >
                   <span class="text-sm font-medium">{{ pt.label }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Estado de la propiedad -->
+            <div>
+              <label class="block text-sm font-medium mb-3">Estado de la propiedad</label>
+              <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <button
+                  v-for="st in propertyStatuses"
+                  :key="st.value"
+                  type="button"
+                  @click="form.status = st.value as any"
+                  class="p-3 rounded-xl border-2 transition-all text-center"
+                  :class="form.status === st.value 
+                    ? 'border-primary bg-primary/10 text-primary' 
+                    : 'border-default hover:border-primary/50'"
+                >
+                  <span class="text-sm font-medium">{{ st.label }}</span>
                 </button>
               </div>
             </div>
