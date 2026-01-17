@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ContractInsert } from '~/types/contract.types'
 import { CURRENCY_OPTIONS, ADJUSTMENT_INDEX_OPTIONS } from '~/types/contract.types'
+import { CalendarDate, today, getLocalTimeZone } from '@internationalized/date'
 
 definePageMeta({
   layout: 'admin'
@@ -22,13 +23,17 @@ const tenants = ref<any[]>([])
 const agents = ref<any[]>([])
 const loadingData = ref(true)
 
+// Refs para las fechas (UInputDate usa CalendarDate)
+const startDate = shallowRef<CalendarDate>(today(getLocalTimeZone()))
+const endDate = shallowRef<CalendarDate>(today(getLocalTimeZone()).add({ years: 2 }))
+
 // Form data
 const form = ref<Partial<ContractInsert>>({
   property_id: undefined,
   tenant_id: undefined,
   agent_id: undefined,
-  start_date: '',
-  end_date: '',
+  start_date: startDate.value.toString(),
+  end_date: endDate.value.toString(),
   monthly_rent: 0,
   deposit: 0,
   currency: 'ARS',
@@ -40,6 +45,19 @@ const form = ref<Partial<ContractInsert>>({
   guarantor_phone: '',
   guarantor_dni: '',
   notes: ''
+})
+
+// Watch para sincronizar fechas con el form
+watch(startDate, (val) => {
+  if (val) {
+    form.value.start_date = val.toString()
+  }
+})
+
+watch(endDate, (val) => {
+  if (val) {
+    form.value.end_date = val.toString()
+  }
 })
 
 // Cargar datos iniciales
@@ -61,13 +79,6 @@ const loadInitialData = async () => {
 
 onMounted(() => {
   loadInitialData()
-  // Fecha de inicio por defecto: hoy
-  const today = new Date()
-  form.value.start_date = today.toISOString().split('T')[0]
-  // Fecha fin por defecto: 2 años después
-  const endDate = new Date(today)
-  endDate.setFullYear(endDate.getFullYear() + 2)
-  form.value.end_date = endDate.toISOString().split('T')[0]
 })
 
 // Opciones de propiedades
@@ -280,9 +291,8 @@ const formatPrice = (value: number, currency: string = 'ARS') => {
                 <label class="block text-sm font-medium mb-2">
                   Fecha de inicio <span class="text-error">*</span>
                 </label>
-                <UInput
-                  v-model="form.start_date"
-                  type="date"
+                <UInputDate
+                  v-model="startDate"
                   size="lg"
                 />
               </div>
@@ -290,9 +300,8 @@ const formatPrice = (value: number, currency: string = 'ARS') => {
                 <label class="block text-sm font-medium mb-2">
                   Fecha de fin <span class="text-error">*</span>
                 </label>
-                <UInput
-                  v-model="form.end_date"
-                  type="date"
+                <UInputDate
+                  v-model="endDate"
                   size="lg"
                 />
               </div>

@@ -45,7 +45,7 @@ export const useAuth = () => {
                 .from('profiles')
                 .select('role')
                 .eq('id', data.user.id)
-                .single() as any
+                .single()
 
             if (profileErr) {
                 await supabase.auth.signOut()
@@ -58,8 +58,8 @@ export const useAuth = () => {
             }
 
             await navigateTo(redirect)
-        } catch (e: any) {
-            error.value = e.message
+        } catch (e) {
+            error.value = e instanceof Error ? e.message : String(e)
         } finally {
             loading.value = false
         }
@@ -103,8 +103,8 @@ export const useAuth = () => {
             }
 
             return true
-        } catch (e: any) {
-            error.value = e.message
+        } catch (e) {
+            error.value = e instanceof Error ? e.message : String(e)
             return false
         } finally {
             loading.value = false
@@ -131,8 +131,8 @@ export const useAuth = () => {
             })
 
             if (err) throw err
-        } catch (e: any) {
-            error.value = e.message
+        } catch (e) {
+            error.value = e instanceof Error ? e.message : String(e)
             loading.value = false
         }
     }

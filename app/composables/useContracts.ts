@@ -6,7 +6,8 @@ import type {
     ContractSort,
     ContractPagination,
     ContractInsert,
-    ContractUpdate
+    ContractUpdate,
+    ContractStatus
 } from '~/types/contract.types'
 
 export const useContracts = () => {
@@ -51,60 +52,72 @@ export const useContracts = () => {
   `
 
     /**
+     * Construye query base para poder inferir el tipo
+     */
+    const buildBaseQuery = () => {
+        return supabase
+            .from('contracts')
+            .select(getSelectQuery(), { count: 'exact' })
+    }
+
+    // Tipo inferido de la query base
+    type ContractQueryBuilder = ReturnType<typeof buildBaseQuery>
+
+    /**
      * Aplica filtros a la query
      */
-    const applyFilters = (query: any, filters: ContractFilters) => {
+    const applyFilters = (query: ContractQueryBuilder, filters: ContractFilters): ContractQueryBuilder => {
+        let filteredQuery = query
+
         if (filters.status) {
             if (Array.isArray(filters.status)) {
-                query = query.in('status', filters.status)
+                filteredQuery = filteredQuery.in('status', filters.status)
             } else {
-                query = query.eq('status', filters.status)
+                filteredQuery = filteredQuery.eq('status', filters.status)
             }
         }
 
         if (filters.property_id) {
-            query = query.eq('property_id', filters.property_id)
+            filteredQuery = filteredQuery.eq('property_id', filters.property_id)
         }
 
         if (filters.tenant_id) {
-            query = query.eq('tenant_id', filters.tenant_id)
+            filteredQuery = filteredQuery.eq('tenant_id', filters.tenant_id)
         }
 
         if (filters.agent_id) {
-            query = query.eq('agent_id', filters.agent_id)
+            filteredQuery = filteredQuery.eq('agent_id', filters.agent_id)
         }
 
         if (filters.from_date) {
-            query = query.gte('start_date', filters.from_date)
+            filteredQuery = filteredQuery.gte('start_date', filters.from_date)
         }
 
         if (filters.to_date) {
-            query = query.lte('end_date', filters.to_date)
+            filteredQuery = filteredQuery.lte('end_date', filters.to_date)
         }
 
-        return query
+        return filteredQuery
     }
 
     /**
      * Aplica ordenamiento
      */
-    const applySort = (query: any, sort?: ContractSort) => {
+    const applySort = (query: ContractQueryBuilder, sort?: ContractSort): ContractQueryBuilder => {
         if (sort) {
-            query = query.order(sort.field, { ascending: sort.direction === 'asc' })
-        } else {
-            query = query.order('created_at', { ascending: false })
+            return query.order(sort.field, { ascending: sort.direction === 'asc' })
         }
-        return query
+        return query.order('created_at', { ascending: false })
     }
 
     /**
      * Aplica paginación
      */
-    const applyPagination = (query: any, pagination?: ContractPagination) => {
+    const applyPagination = (query: ContractQueryBuilder, pagination?: ContractPagination): ContractQueryBuilder => {
         if (pagination) {
             const from = (pagination.page - 1) * pagination.pageSize
             const to = from + pagination.pageSize - 1
-            query = query.range(from, to)
+            return query.range(from, to)
         }
         return query
     }
@@ -121,19 +134,16 @@ export const useContracts = () => {
         error.value = null
 
         try {
-            let query = supabase
-                .from('contracts')
-                .select(getSelectQuery(), { count: 'exact' })
-
+            let query = buildBaseQuery()
             query = applyFilters(query, filters)
             query = applySort(query, sort)
             query = applyPagination(query, pagination)
 
-            const { data, error: fetchError, count } = await query as any
+            const { data, error: fetchError, count } = await query
 
             if (fetchError) throw fetchError
 
-            let result = data as Contract[]
+            let result = (data || []) as Contract[]
 
             // Filtro de búsqueda en cliente
             if (filters.search) {
@@ -150,9 +160,10 @@ export const useContracts = () => {
             total.value = count || 0
 
             return { data: result, total: total.value }
-        } catch (e: any) {
-            error.value = e
-            console.error('Error fetching contracts:', e)
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            error.value = err
+            console.error('Error fetching contracts:', err)
             return { data: [], total: 0 }
         } finally {
             loading.value = false
@@ -171,14 +182,15 @@ export const useContracts = () => {
                 .from('contracts')
                 .select(getSelectQuery())
                 .eq('id', id)
-                .single() as any
+                .single()
 
             if (fetchError) throw fetchError
 
             return data as Contract
-        } catch (e: any) {
-            error.value = e
-            console.error('Error fetching contract:', e)
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            error.value = err
+            console.error('Error fetching contract:', err)
             return null
         } finally {
             loading.value = false
@@ -192,17 +204,17 @@ export const useContracts = () => {
         try {
             const { data, error: fetchError } = await supabase
                 .from('properties')
-                .select('id, title, address, city, images, operation_type, price, currency')
+                .select('id, title, address, city, images, operation_type, price, currency, status')
                 .in('operation_type', ['alquiler', 'alquiler_temporal'])
-                .eq('status', 'disponible')
-                .eq('is_published', true)
-                .order('title', { ascending: true }) as any
+                .in('status', ['disponible', 'reservada']) // Disponibles o reservadas (no alquiladas)
+                .order('title', { ascending: true })
 
             if (fetchError) throw fetchError
 
             return data || []
-        } catch (e: any) {
-            console.error('Error fetching available properties:', e)
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            console.error('Error fetching available properties:', err)
             return []
         }
     }
@@ -217,13 +229,14 @@ export const useContracts = () => {
                 .select('id, full_name, email, phone, dni')
                 .eq('role', 'inquilino')
                 .eq('is_active', true)
-                .order('full_name', { ascending: true }) as any
+                .order('full_name', { ascending: true })
 
             if (fetchError) throw fetchError
 
             return data || []
-        } catch (e: any) {
-            console.error('Error fetching tenants:', e)
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            console.error('Error fetching tenants:', err)
             return []
         }
     }
@@ -244,13 +257,14 @@ export const useContracts = () => {
           )
         `)
                 .eq('is_verified', true)
-                .order('created_at', { ascending: false }) as any
+                .order('created_at', { ascending: false })
 
             if (fetchError) throw fetchError
 
             return data || []
-        } catch (e: any) {
-            console.error('Error fetching agents:', e)
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            console.error('Error fetching agents:', err)
             return []
         }
     }
@@ -264,33 +278,35 @@ export const useContracts = () => {
 
         try {
             // Generar número de contrato si no existe
-            if (!contractData.contract_number) {
+            const insertData = { ...contractData }
+            if (!insertData.contract_number) {
                 const year = new Date().getFullYear()
                 const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
-                contractData.contract_number = `CTR-${year}-${random}`
+                insertData.contract_number = `CTR-${year}-${random}`
             }
 
             const { data, error: insertError } = await supabase
                 .from('contracts')
-                .insert(contractData as any)
+                .insert(insertData)
                 .select(getSelectQuery())
-                .single() as any
+                .single()
 
             if (insertError) throw insertError
 
             // Actualizar estado de la propiedad a 'alquilada' si el contrato está activo
-            if (contractData.status === 'activo' && contractData.property_id) {
+            if (insertData.status === 'activo' && insertData.property_id) {
                 await supabase
                     .from('properties')
-                    .update({ status: 'alquilada' } as any)
-                    .eq('id', contractData.property_id)
+                    .update({ status: 'alquilada' })
+                    .eq('id', insertData.property_id)
             }
 
             return data as Contract
-        } catch (e: any) {
-            error.value = e
-            console.error('Error creating contract:', e)
-            throw e
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            error.value = err
+            console.error('Error creating contract:', err)
+            throw err
         } finally {
             loading.value = false
         }
@@ -306,18 +322,19 @@ export const useContracts = () => {
         try {
             const { data, error: updateError } = await supabase
                 .from('contracts')
-                .update({ ...updates, updated_at: new Date().toISOString() } as any)
+                .update({ ...updates, updated_at: new Date().toISOString() })
                 .eq('id', id)
                 .select(getSelectQuery())
-                .single() as any
+                .single()
 
             if (updateError) throw updateError
 
             return data as Contract
-        } catch (e: any) {
-            error.value = e
-            console.error('Error updating contract:', e)
-            throw e
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            error.value = err
+            console.error('Error updating contract:', err)
+            throw err
         } finally {
             loading.value = false
         }
@@ -326,38 +343,36 @@ export const useContracts = () => {
     /**
      * Actualiza el estado de un contrato
      */
-    const updateContractStatus = async (id: string, status: Contract['status'], propertyId?: string) => {
+    const updateContractStatus = async (id: string, status: ContractStatus, propertyId?: string) => {
         loading.value = true
         error.value = null
 
         try {
             const { data, error: updateError } = await supabase
                 .from('contracts')
-                .update({ status, updated_at: new Date().toISOString() } as any)
+                .update({ status, updated_at: new Date().toISOString() })
                 .eq('id', id)
                 .select(getSelectQuery())
-                .single() as any
+                .single()
 
             if (updateError) throw updateError
 
             // Actualizar estado de la propiedad según el estado del contrato
             if (propertyId) {
-                let propertyStatus = 'disponible'
-                if (status === 'activo') {
-                    propertyStatus = 'alquilada'
-                }
+                const propertyStatus = status === 'activo' ? 'alquilada' : 'disponible'
 
                 await supabase
                     .from('properties')
-                    .update({ status: propertyStatus } as any)
+                    .update({ status: propertyStatus })
                     .eq('id', propertyId)
             }
 
             return data as Contract
-        } catch (e: any) {
-            error.value = e
-            console.error('Error updating contract status:', e)
-            throw e
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            error.value = err
+            console.error('Error updating contract status:', err)
+            throw err
         } finally {
             loading.value = false
         }
@@ -370,7 +385,7 @@ export const useContracts = () => {
         try {
             const { data, error: fetchError } = await supabase
                 .from('contracts')
-                .select('status, monthly_rent') as any
+                .select('status, monthly_rent')
 
             if (fetchError) throw fetchError
 
@@ -399,8 +414,9 @@ export const useContracts = () => {
             }
 
             return stats
-        } catch (e: any) {
-            console.error('Error fetching contract stats:', e)
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            console.error('Error fetching contract stats:', err)
             return {
                 total: 0,
                 activos: 0,
@@ -426,13 +442,14 @@ export const useContracts = () => {
                 .eq('status', 'activo')
                 .gte('end_date', today.toISOString().split('T')[0])
                 .lte('end_date', futureDate.toISOString().split('T')[0])
-                .order('end_date', { ascending: true }) as any
+                .order('end_date', { ascending: true })
 
             if (fetchError) throw fetchError
 
-            return data as Contract[]
-        } catch (e: any) {
-            console.error('Error fetching expiring contracts:', e)
+            return (data || []) as Contract[]
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            console.error('Error fetching expiring contracts:', err)
             return []
         }
     }

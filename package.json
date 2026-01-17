@@ -10,6 +10,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@internationalized/date": "^3.10.1",
     "@nuxt/ui": "^4.2.1",
     "@nuxtjs/supabase": "^2.0.3",
     "@vueuse/nuxt": "^14.1.0",

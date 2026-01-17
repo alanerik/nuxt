@@ -7,7 +7,8 @@ import type {
     PaymentPagination,
     PaymentUpdate,
     PaymentStats,
-    PaymentMethod
+    PaymentMethod,
+    PaymentStatus
 } from '~/types/payment.types'
 
 export const usePayments = () => {
@@ -49,69 +50,81 @@ export const usePayments = () => {
   `
 
     /**
+     * Construye query base para poder inferir el tipo
+     */
+    const buildBaseQuery = () => {
+        return supabase
+            .from('payments')
+            .select(getSelectQuery(), { count: 'exact' })
+    }
+
+    // Tipo inferido de la query base
+    type PaymentQueryBuilder = ReturnType<typeof buildBaseQuery>
+
+    /**
      * Aplica filtros a la query
      */
-    const applyFilters = (query: any, filters: PaymentFilters) => {
+    const applyFilters = (query: PaymentQueryBuilder, filters: PaymentFilters): PaymentQueryBuilder => {
+        let filteredQuery = query
+
         if (filters.search) {
             // Búsqueda por nombre de inquilino (se filtra en cliente)
         }
 
         if (filters.status) {
             if (Array.isArray(filters.status)) {
-                query = query.in('status', filters.status)
+                filteredQuery = filteredQuery.in('status', filters.status)
             } else {
-                query = query.eq('status', filters.status)
+                filteredQuery = filteredQuery.eq('status', filters.status)
             }
         }
 
         if (filters.contract_id) {
-            query = query.eq('contract_id', filters.contract_id)
+            filteredQuery = filteredQuery.eq('contract_id', filters.contract_id)
         }
 
         if (filters.tenant_id) {
-            query = query.eq('tenant_id', filters.tenant_id)
+            filteredQuery = filteredQuery.eq('tenant_id', filters.tenant_id)
         }
 
         if (filters.period_month !== undefined) {
-            query = query.eq('period_month', filters.period_month)
+            filteredQuery = filteredQuery.eq('period_month', filters.period_month)
         }
 
         if (filters.period_year !== undefined) {
-            query = query.eq('period_year', filters.period_year)
+            filteredQuery = filteredQuery.eq('period_year', filters.period_year)
         }
 
         if (filters.from_date) {
-            query = query.gte('due_date', filters.from_date)
+            filteredQuery = filteredQuery.gte('due_date', filters.from_date)
         }
 
         if (filters.to_date) {
-            query = query.lte('due_date', filters.to_date)
+            filteredQuery = filteredQuery.lte('due_date', filters.to_date)
         }
 
-        return query
+        return filteredQuery
     }
 
     /**
      * Aplica ordenamiento
      */
-    const applySort = (query: any, sort?: PaymentSort) => {
+    const applySort = (query: PaymentQueryBuilder, sort?: PaymentSort): PaymentQueryBuilder => {
         if (sort) {
-            query = query.order(sort.field, { ascending: sort.direction === 'asc' })
-        } else {
-            // Por defecto: vencimientos más próximos primero
-            query = query.order('due_date', { ascending: true })
+            return query.order(sort.field, { ascending: sort.direction === 'asc' })
         }
-        return query
+        // Por defecto: vencimientos más próximos primero
+        return query.order('due_date', { ascending: true })
     }
 
     /**
      * Aplica paginación
      */
-    const applyPagination = (query: any, pagination?: PaymentPagination) => {
+    const applyPagination = (query: PaymentQueryBuilder, pagination?: PaymentPagination): PaymentQueryBuilder => {
         if (pagination) {
             const from = (pagination.page - 1) * pagination.pageSize
             const to = from + pagination.pageSize - 1
-            query = query.range(from, to)
+            return query.range(from, to)
         }
         return query
     }
@@ -128,19 +141,16 @@ export const usePayments = () => {
         error.value = null
 
         try {
-            let query = supabase
-                .from('payments')
-                .select(getSelectQuery(), { count: 'exact' })
-
+            let query = buildBaseQuery()
             query = applyFilters(query, filters)
             query = applySort(query, sort)
             query = applyPagination(query, pagination)
 
-            const { data, error: fetchError, count } = await query as any
+            const { data, error: fetchError, count } = await query
 
             if (fetchError) throw fetchError
 
-            let result = data as Payment[]
+            let result = (data || []) as Payment[]
 
             // Filtro de búsqueda en cliente (por nombre inquilino/propiedad)
             if (filters.search) {
@@ -156,9 +166,10 @@ export const usePayments = () => {
             total.value = count || 0
 
             return { data: result, total: total.value }
-        } catch (e: any) {
-            error.value = e
-            console.error('Error fetching payments:', e)
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            error.value = err
+            console.error('Error fetching payments:', err)
             return { data: [], total: 0 }
         } finally {
             loading.value = false
@@ -194,14 +205,15 @@ export const usePayments = () => {
                 .from('payments')
                 .select(getSelectQuery())
                 .eq('id', id)
-                .single() as any
+                .single()
 
             if (fetchError) throw fetchError
 
             return data as Payment
-        } catch (e: any) {
-            error.value = e
-            console.error('Error fetching payment:', e)
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            error.value = err
+            console.error('Error fetching payment:', err)
             return null
         } finally {
             loading.value = false
@@ -235,13 +247,14 @@ export const usePayments = () => {
                     )
                 `)
                 .eq('status', 'activo')
-                .order('created_at', { ascending: false }) as any
+                .order('created_at', { ascending: false })
 
             if (fetchError) throw fetchError
 
             return data || []
-        } catch (e: any) {
-            console.error('Error fetching contracts:', e)
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            console.error('Error fetching contracts:', err)
             return []
         }
     }
@@ -276,17 +289,18 @@ export const usePayments = () => {
                     status: 'pendiente',
                     notes: paymentData.notes || null,
                     late_fee: 0
-                } as any)
+                })
                 .select(getSelectQuery())
-                .single() as any
+                .single()
 
             if (insertError) throw insertError
 
             return data as Payment
-        } catch (e: any) {
-            error.value = e
-            console.error('Error creating payment:', e)
-            throw e
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            error.value = err
+            console.error('Error creating payment:', err)
+            throw err
         } finally {
             loading.value = false
         }
@@ -317,18 +331,19 @@ export const usePayments = () => {
 
             const { data, error: updateError } = await supabase
                 .from('payments')
-                .update(updates as any)
+                .update(updates)
                 .eq('id', id)
                 .select(getSelectQuery())
-                .single() as any
+                .single()
 
             if (updateError) throw updateError
 
             return data as Payment
-        } catch (e: any) {
-            error.value = e
-            console.error('Error registering payment:', e)
-            throw e
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            error.value = err
+            console.error('Error registering payment:', err)
+            throw err
         } finally {
             loading.value = false
         }
@@ -337,7 +352,7 @@ export const usePayments = () => {
     /**
      * Actualiza el estado de un pago
      */
-    const updatePaymentStatus = async (id: string, status: Payment['status']) => {
+    const updatePaymentStatus = async (id: string, status: PaymentStatus) => {
         loading.value = true
         error.value = null
 
@@ -356,18 +371,19 @@ export const usePayments = () => {
 
             const { data, error: updateError } = await supabase
                 .from('payments')
-                .update(updates as any)
+                .update(updates)
                 .eq('id', id)
                 .select(getSelectQuery())
-                .single() as any
+                .single()
 
             if (updateError) throw updateError
 
             return data as Payment
-        } catch (e: any) {
-            error.value = e
-            console.error('Error updating payment status:', e)
-            throw e
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            error.value = err
+            console.error('Error updating payment status:', err)
+            throw err
         } finally {
             loading.value = false
         }
@@ -391,7 +407,7 @@ export const usePayments = () => {
                 query = query.eq('period_year', year).eq('period_month', month)
             }
 
-            const { data, error: fetchError } = await query as any
+            const { data, error: fetchError } = await query
 
             if (fetchError) throw fetchError
 
@@ -423,8 +439,9 @@ export const usePayments = () => {
             }
 
             return stats
-        } catch (e: any) {
-            console.error('Error fetching payment stats:', e)
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            console.error('Error fetching payment stats:', err)
             return {
                 totalPendiente: 0,
                 totalPagado: 0,
@@ -451,13 +468,14 @@ export const usePayments = () => {
                 .eq('status', 'pendiente')
                 .gte('due_date', today.toISOString().split('T')[0])
                 .lte('due_date', futureDate.toISOString().split('T')[0])
-                .order('due_date', { ascending: true }) as any
+                .order('due_date', { ascending: true })
 
             if (fetchError) throw fetchError
 
-            return data as Payment[]
-        } catch (e: any) {
-            console.error('Error fetching upcoming payments:', e)
+            return (data || []) as Payment[]
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            console.error('Error fetching upcoming payments:', err)
             return []
         }
     }
@@ -474,7 +492,7 @@ export const usePayments = () => {
                 .select(getSelectQuery())
                 .eq('status', 'pendiente')
                 .lt('due_date', today)
-                .order('due_date', { ascending: true }) as any
+                .order('due_date', { ascending: true })
 
             if (fetchError) throw fetchError
 
@@ -482,13 +500,14 @@ export const usePayments = () => {
             for (const payment of data || []) {
                 await supabase
                     .from('payments')
-                    .update({ status: 'vencido' } as any)
+                    .update({ status: 'vencido' as PaymentStatus })
                     .eq('id', payment.id)
             }
 
-            return data as Payment[]
-        } catch (e: any) {
-            console.error('Error fetching overdue payments:', e)
+            return (data || []) as Payment[]
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            console.error('Error fetching overdue payments:', err)
             return []
         }
     }
@@ -500,8 +519,6 @@ export const usePayments = () => {
         if (!user.value) return null
 
         try {
-            const today = new Date().toISOString().split('T')[0]
-
             const { data, error: fetchError } = await supabase
                 .from('payments')
                 .select(getSelectQuery())
@@ -509,13 +526,14 @@ export const usePayments = () => {
                 .in('status', ['pendiente', 'vencido'])
                 .order('due_date', { ascending: true })
                 .limit(1)
-                .single() as any
+                .single()
 
             if (fetchError && fetchError.code !== 'PGRST116') throw fetchError
 
             return data as Payment | null
-        } catch (e: any) {
-            console.error('Error fetching next tenant payment:', e)
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            console.error('Error fetching next tenant payment:', err)
             return null
         }
     }

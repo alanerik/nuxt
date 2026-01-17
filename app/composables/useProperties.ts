@@ -43,90 +43,93 @@ export const useProperties = () => {
         return query
     }
 
+    // Tipo inferido de la query base
+    type PropertyQueryBuilder = ReturnType<typeof buildBaseQuery>
+
     /**
      * Aplica filtros a la query
      */
-    const applyFilters = (query: any, filters: PropertyFilters) => {
+    const applyFilters = (query: PropertyQueryBuilder, filters: PropertyFilters): PropertyQueryBuilder => {
+        let filteredQuery = query
+
         if (filters.search) {
-            query = query.or(`title.ilike.%${filters.search}%,address.ilike.%${filters.search}%,city.ilike.%${filters.search}%`)
+            filteredQuery = filteredQuery.or(`title.ilike.%${filters.search}%,address.ilike.%${filters.search}%,city.ilike.%${filters.search}%`)
         }
 
         if (filters.property_type) {
             if (Array.isArray(filters.property_type)) {
-                query = query.in('property_type', filters.property_type)
+                filteredQuery = filteredQuery.in('property_type', filters.property_type)
             } else {
-                query = query.eq('property_type', filters.property_type)
+                filteredQuery = filteredQuery.eq('property_type', filters.property_type)
             }
         }
 
         if (filters.operation_type) {
-            query = query.eq('operation_type', filters.operation_type)
+            filteredQuery = filteredQuery.eq('operation_type', filters.operation_type)
         }
 
         if (filters.status) {
             if (Array.isArray(filters.status)) {
-                query = query.in('status', filters.status)
+                filteredQuery = filteredQuery.in('status', filters.status)
             } else {
-                query = query.eq('status', filters.status)
+                filteredQuery = filteredQuery.eq('status', filters.status)
             }
         }
 
         if (filters.min_price !== undefined) {
-            query = query.gte('price', filters.min_price)
+            filteredQuery = filteredQuery.gte('price', filters.min_price)
         }
 
         if (filters.max_price !== undefined) {
-            query = query.lte('price', filters.max_price)
+            filteredQuery = filteredQuery.lte('price', filters.max_price)
         }
 
         if (filters.bedrooms !== undefined) {
-            query = query.gte('bedrooms', filters.bedrooms)
+            filteredQuery = filteredQuery.gte('bedrooms', filters.bedrooms)
         }
 
         if (filters.bathrooms !== undefined) {
-            query = query.gte('bathrooms', filters.bathrooms)
+            filteredQuery = filteredQuery.gte('bathrooms', filters.bathrooms)
         }
 
         if (filters.city) {
-            query = query.ilike('city', `%${filters.city}%`)
+            filteredQuery = filteredQuery.ilike('city', `%${filters.city}%`)
         }
 
         if (filters.agent_id) {
-            query = query.eq('agent_id', filters.agent_id)
+            filteredQuery = filteredQuery.eq('agent_id', filters.agent_id)
         }
 
         if (filters.is_featured !== undefined) {
-            query = query.eq('is_featured', filters.is_featured)
+            filteredQuery = filteredQuery.eq('is_featured', filters.is_featured)
         }
 
         if (filters.is_published !== undefined) {
-            query = query.eq('is_published', filters.is_published)
+            filteredQuery = filteredQuery.eq('is_published', filters.is_published)
         }
 
-        return query
+        return filteredQuery
     }
 
     /**
      * Aplica ordenamiento
      */
-    const applySort = (query: any, sort?: PropertySort) => {
+    const applySort = (query: PropertyQueryBuilder, sort?: PropertySort): PropertyQueryBuilder => {
         if (sort) {
-            query = query.order(sort.field, { ascending: sort.direction === 'asc' })
-        } else {
-            // Ordenamiento por defecto: más recientes primero
-            query = query.order('created_at', { ascending: false })
+            return query.order(sort.field, { ascending: sort.direction === 'asc' })
         }
-        return query
+        // Ordenamiento por defecto: más recientes primero
+        return query.order('created_at', { ascending: false })
     }
 
     /**
      * Aplica paginación
      */
-    const applyPagination = (query: any, pagination?: PropertyPagination) => {
+    const applyPagination = (query: PropertyQueryBuilder, pagination?: PropertyPagination): PropertyQueryBuilder => {
         if (pagination) {
             const from = (pagination.page - 1) * pagination.pageSize
             const to = from + pagination.pageSize - 1
-            query = query.range(from, to)
+            return query.range(from, to)
         }
         return query
     }
@@ -148,18 +151,18 @@ export const useProperties = () => {
             query = applySort(query, sort)
             query = applyPagination(query, pagination)
 
-            const { data, error: fetchError, count } = await query as any
+            const { data, error: fetchError, count } = await query
 
             if (fetchError) throw fetchError
 
-            properties.value = data as Property[]
+            properties.value = (data || []) as Property[]
             total.value = count || 0
 
             return { data: properties.value, total: total.value }
-        } catch (e: any) {
-            error.value = e
-            console.error('Error fetching properties:', e)
-            console.error('Details:', JSON.stringify(e, null, 2))
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            error.value = err
+            console.error('Error fetching properties:', err)
             return { data: [], total: 0 }
         } finally {
             loading.value = false
@@ -212,23 +215,24 @@ export const useProperties = () => {
       )
     `)
                 .eq('id', id)
-                .single() as any
+                .single()
 
             if (fetchError) throw fetchError
 
             // Incrementar contador de vistas (solo si no es el propietario/agente)
-            if (data && (!user.value || (user.value.id !== data.agent_id && user.value.id !== data.owner_id))) {
-                await (supabase
+            const propertyData = data as Property
+            if (propertyData && (!user.value || (user.value.id !== propertyData.agent_id && user.value.id !== propertyData.owner_id))) {
+                await supabase
                     .from('properties')
-                    .update({ views_count: (data.views_count || 0) + 1 } as any)
-                    .eq('id', id) as any)
+                    .update({ views_count: (propertyData.views_count || 0) + 1 })
+                    .eq('id', id)
             }
 
-            return data as Property
-        } catch (e: any) {
-            error.value = e
-            console.error('Error fetching property:', e)
-            console.error('Details:', JSON.stringify(e, null, 2))
+            return propertyData
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            error.value = err
+            console.error('Error fetching property:', err)
             return null
         } finally {
             loading.value = false
@@ -244,24 +248,25 @@ export const useProperties = () => {
 
         try {
             // Si es agente, asignar automáticamente
+            const propertyData = { ...property }
             if (role.value === 'agente' && user.value) {
-                property.agent_id = user.value.id
+                propertyData.agent_id = user.value.id
             }
 
             const { data, error: insertError } = await supabase
                 .from('properties')
-                .insert(property as any)
+                .insert(propertyData)
                 .select()
-                .single() as any
+                .single()
 
             if (insertError) throw insertError
 
             return data as Property
-        } catch (e: any) {
-            error.value = e
-            console.error('Error creating property:', e)
-            console.error('Error details:', JSON.stringify(e, null, 2))
-            throw e
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            error.value = err
+            console.error('Error creating property:', err)
+            throw err
         } finally {
             loading.value = false
         }
@@ -277,19 +282,19 @@ export const useProperties = () => {
         try {
             const { data, error: updateError } = await supabase
                 .from('properties')
-                .update(updates as any)
+                .update(updates)
                 .eq('id', id)
                 .select()
-                .single() as any
+                .single()
 
             if (updateError) throw updateError
 
             return data as Property
-        } catch (e: any) {
-            error.value = e
-            console.error('Error updating property:', e)
-            console.error('Details:', JSON.stringify(e, null, 2))
-            throw e
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            error.value = err
+            console.error('Error updating property:', err)
+            throw err
         } finally {
             loading.value = false
         }
@@ -312,11 +317,11 @@ export const useProperties = () => {
             if (deleteError) throw deleteError
 
             return true
-        } catch (e: any) {
-            error.value = e
-            console.error('Error deleting property:', e)
-            console.error('Details:', JSON.stringify(e, null, 2))
-            throw e
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            error.value = err
+            console.error('Error deleting property:', err)
+            throw err
         } finally {
             loading.value = false
         }
@@ -333,7 +338,7 @@ export const useProperties = () => {
                 const fileExt = file.name.split('.').pop()
                 const fileName = `${propertyId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
 
-                const { data, error: uploadError } = await supabase.storage
+                const { error: uploadError } = await supabase.storage
                     .from('properties')
                     .upload(fileName, file)
 
@@ -347,9 +352,10 @@ export const useProperties = () => {
             }
 
             return uploadedUrls
-        } catch (e: any) {
-            console.error('Error uploading images:', e)
-            throw e
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            console.error('Error uploading images:', err)
+            throw err
         }
     }
 

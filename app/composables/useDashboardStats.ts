@@ -82,7 +82,7 @@ export const useDashboardStats = () => {
         for (const contract of contracts) {
           const address = contract.property?.address || 'Propiedad desconocida'
           const isNew = new Date(contract.created_at).getTime() === new Date(contract.updated_at).getTime()
-          
+
           recentActivities.push({
             id: `contract-${contract.id}`,
             action: isNew ? 'Nuevo contrato firmado' : 'Contrato renovado',
@@ -113,7 +113,7 @@ export const useDashboardStats = () => {
       if (payments) {
         for (const payment of payments) {
           const address = payment.contract?.property?.address || 'Propiedad desconocida'
-          
+
           recentActivities.push({
             id: `payment-${payment.id}`,
             action: 'Pago recibido',
@@ -140,7 +140,7 @@ export const useDashboardStats = () => {
       if (maintenance) {
         for (const request of maintenance) {
           const address = request.property?.address || 'Propiedad desconocida'
-          
+
           recentActivities.push({
             id: `maintenance-${request.id}`,
             action: 'Solicitud de mantenimiento',
@@ -213,13 +213,13 @@ export const useDashboardStats = () => {
       // Propiedades del mes anterior (para calcular cambio)
       const lastMonth = new Date()
       lastMonth.setMonth(lastMonth.getMonth() - 1)
-      
+
       const { count: propertiesLastMonth } = await supabase
         .from('properties')
         .select('*', { count: 'exact', head: true })
         .lt('created_at', lastMonth.toISOString())
 
-      const propChange = propertiesLastMonth && propertiesLastMonth > 0 
+      const propChange = propertiesLastMonth && propertiesLastMonth > 0
         ? Math.round(((totalProperties || 0) - propertiesLastMonth) / propertiesLastMonth * 100)
         : 0
 
@@ -350,9 +350,10 @@ export const useDashboardStats = () => {
 
       activities.value = fetchedActivities
       stats.value = fetchedStats
-    } catch (e: any) {
-      error.value = e
-      console.error('Error loading dashboard data:', e)
+    } catch (e) {
+      const err = e instanceof Error ? e : new Error(String(e))
+      error.value = err
+      console.error('Error loading dashboard data:', err)
     } finally {
       loading.value = false
     }

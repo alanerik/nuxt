@@ -55,7 +55,8 @@ export const useUserRole = () => {
             role.value = profile.role
             return profile.role
 
-        } catch (err: any) {
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
             console.error('Error fetching user role:', err)
             error.value = err
             role.value = null

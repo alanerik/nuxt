@@ -17,7 +17,8 @@ export default defineNuxtConfig({
         '/inquilino/login',
         '/agente/login'
       ]
-    }
+    },
+    types: '~/types/database.types'
   },
 })
 
