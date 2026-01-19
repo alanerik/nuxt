@@ -14,6 +14,11 @@ export const useProperties = () => {
     const user = useSupabaseUser()
     const { role } = useUserRole()
 
+    // Type helpers
+    type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]
+    type PropertyUpdateDB = Tables<'properties'>['Update']
+    type PropertyInsertDB = Tables<'properties'>['Insert']
+
     // Estado reactivo
     const properties = ref<Property[]>([])
     const loading = ref(false)
@@ -135,6 +140,17 @@ export const useProperties = () => {
     }
 
     /**
+     * Helper para formatear errores
+     */
+    const formatError = (e: unknown): Error => {
+        if (e instanceof Error) return e
+        if (typeof e === 'object' && e !== null && 'message' in e) {
+            return new Error((e as any).message)
+        }
+        return new Error(String(e))
+    }
+
+    /**
      * Obtiene el listado de propiedades con filtros
      */
     const fetchProperties = async (
@@ -160,7 +176,7 @@ export const useProperties = () => {
 
             return { data: properties.value, total: total.value }
         } catch (e) {
-            const err = e instanceof Error ? e : new Error(String(e))
+            const err = formatError(e)
             error.value = err
             console.error('Error fetching properties:', err)
             return { data: [], total: 0 }
@@ -230,7 +246,7 @@ export const useProperties = () => {
 
             return propertyData
         } catch (e) {
-            const err = e instanceof Error ? e : new Error(String(e))
+            const err = formatError(e)
             error.value = err
             console.error('Error fetching property:', err)
             return null
@@ -248,7 +264,7 @@ export const useProperties = () => {
 
         try {
             // Si es agente, asignar automáticamente
-            const propertyData = { ...property }
+            const propertyData: PropertyInsertDB = { ...property }
             if (role.value === 'agente' && user.value) {
                 propertyData.agent_id = user.value.id
             }
@@ -263,7 +279,7 @@ export const useProperties = () => {
 
             return data as Property
         } catch (e) {
-            const err = e instanceof Error ? e : new Error(String(e))
+            const err = formatError(e)
             error.value = err
             console.error('Error creating property:', err)
             throw err
@@ -280,9 +296,11 @@ export const useProperties = () => {
         error.value = null
 
         try {
+            const updateData: PropertyUpdateDB = { ...updates }
+
             const { data, error: updateError } = await supabase
                 .from('properties')
-                .update(updates)
+                .update(updateData)
                 .eq('id', id)
                 .select()
                 .single()
@@ -291,7 +309,7 @@ export const useProperties = () => {
 
             return data as Property
         } catch (e) {
-            const err = e instanceof Error ? e : new Error(String(e))
+            const err = formatError(e)
             error.value = err
             console.error('Error updating property:', err)
             throw err
@@ -318,7 +336,7 @@ export const useProperties = () => {
 
             return true
         } catch (e) {
-            const err = e instanceof Error ? e : new Error(String(e))
+            const err = formatError(e)
             error.value = err
             console.error('Error deleting property:', err)
             throw err
@@ -353,7 +371,7 @@ export const useProperties = () => {
 
             return uploadedUrls
         } catch (e) {
-            const err = e instanceof Error ? e : new Error(String(e))
+            const err = formatError(e)
             console.error('Error uploading images:', err)
             throw err
         }
