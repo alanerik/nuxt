@@ -298,6 +298,19 @@ export const useContracts = () => {
         error.value = null
 
         try {
+            // Validar que la propiedad no tenga contratos activos
+            const { data: existingContracts, error: checkError } = await supabase
+                .from('contracts')
+                .select('id')
+                .eq('property_id', contractData.property_id)
+                .in('status', ['activo', 'pendiente'])
+
+            if (checkError) throw checkError
+
+            if (existingContracts && existingContracts.length > 0) {
+                throw new Error('Esta propiedad ya tiene un contrato activo o pendiente.')
+            }
+
             // Generar número de contrato si no existe
             const insertData: ContractInsertDB = { ...contractData }
             if (!insertData.contract_number) {
@@ -368,6 +381,36 @@ export const useContracts = () => {
         error.value = null
 
         try {
+            // Si el nuevo estado es activo/pendiente, verificar conflictos
+            if (status === 'activo' || status === 'pendiente') {
+                // 1. Obtener info del contrato actual
+                const { data: currentContract, error: getError } = await supabase
+                    .from('contracts')
+                    .select('property_id')
+                    .eq('id', id)
+                    .single()
+
+                if (getError) throw getError
+
+                const contractData = currentContract as { property_id: string }
+
+                // 2. Verificar si hay otros contratos conflictuos
+                if (contractData?.property_id) {
+                    const { data: conflicts, error: checkError } = await supabase
+                        .from('contracts')
+                        .select('id')
+                        .eq('property_id', contractData.property_id)
+                        .in('status', ['activo', 'pendiente'])
+                        .neq('id', id) // Importante: excluir el contrato actual
+
+                    if (checkError) throw checkError
+
+                    if (conflicts && conflicts.length > 0) {
+                        throw new Error('No se puede activar: Ya existe otro contrato activo para esta propiedad.')
+                    }
+                }
+            }
+
             const updateData: ContractUpdateDB = {
                 status,
                 updated_at: new Date().toISOString()
