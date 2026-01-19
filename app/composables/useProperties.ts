@@ -319,14 +319,62 @@ export const useProperties = () => {
     }
 
     /**
-     * Elimina una propiedad (hard delete)
+     * Elimina o archiva una propiedad según tenga contratos
+     * - Si tiene contratos activos/pendientes: ERROR, no se puede eliminar
+     * - Si tiene contratos históricos: ARCHIVA la propiedad
+     * - Si no tiene contratos: ELIMINA físicamente
      */
-    const deleteProperty = async (id: string) => {
+    const deleteProperty = async (id: string, force: boolean = false) => {
         loading.value = true
         error.value = null
 
         try {
-            // Hard delete: borrar la fila de la base de datos
+            // Verificar contratos asociados
+            const { data: contracts, error: contractError } = await supabase
+                .from('contracts')
+                .select('id, status')
+                .eq('property_id', id)
+
+            if (contractError) throw contractError
+
+            // Verificar si tiene contratos activos o pendientes
+            const hasActiveContracts = contracts?.some(c =>
+                c.status === 'activo' || c.status === 'pendiente'
+            )
+
+            if (hasActiveContracts) {
+                throw new Error(
+                    'No se puede eliminar: la propiedad tiene contratos activos o pendientes. ' +
+                    'Debe cancelar o finalizar los contratos primero.'
+                )
+            }
+
+            const hasHistoricalContracts = contracts && contracts.length > 0
+
+            // Si tiene contratos históricos (vencidos/cancelados), archivar en lugar de eliminar
+            if (hasHistoricalContracts && !force) {
+                const { data, error: updateError } = await supabase
+                    .from('properties')
+                    .update({
+                        status: 'archivada',
+                        is_published: false,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', id)
+                    .select()
+                    .single()
+
+                if (updateError) throw updateError
+
+                return {
+                    success: true,
+                    archived: true,
+                    message: 'Propiedad archivada correctamente (tiene historial de contratos)',
+                    data: data as Property
+                }
+            }
+
+            // Eliminar físicamente solo si no tiene contratos o si force=true
             const { error: deleteError } = await supabase
                 .from('properties')
                 .delete()
@@ -334,11 +382,46 @@ export const useProperties = () => {
 
             if (deleteError) throw deleteError
 
-            return true
+            return {
+                success: true,
+                deleted: true,
+                message: 'Propiedad eliminada correctamente'
+            }
         } catch (e) {
             const err = formatError(e)
             error.value = err
             console.error('Error deleting property:', err)
+            throw err
+        } finally {
+            loading.value = false
+        }
+    }
+
+    /**
+     * Restaura una propiedad archivada
+     */
+    const restoreProperty = async (id: string) => {
+        loading.value = true
+        error.value = null
+
+        try {
+            const { data, error: updateError } = await supabase
+                .from('properties')
+                .update({
+                    status: 'disponible',
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', id)
+                .select()
+                .single()
+
+            if (updateError) throw updateError
+
+            return data as Property
+        } catch (e) {
+            const err = formatError(e)
+            error.value = err
+            console.error('Error restoring property:', err)
             throw err
         } finally {
             loading.value = false
@@ -390,6 +473,7 @@ export const useProperties = () => {
         createProperty,
         updateProperty,
         deleteProperty,
+        restoreProperty,
         uploadPropertyImages
     }
 }

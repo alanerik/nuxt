@@ -105,7 +105,7 @@ export type Database = {
                     property_type: 'departamento' | 'casa' | 'ph' | 'local' | 'oficina' | 'terreno' | 'cochera'
                     operation_type: 'venta' | 'alquiler' | 'alquiler_temporal'
                     rental_period: string | null
-                    status: 'disponible' | 'reservada' | 'alquilada' | 'vendida' | 'en_mantenimiento'
+                    status: 'disponible' | 'reservada' | 'alquilada' | 'vendida' | 'en_mantenimiento' | 'archivada'
                     address: string
                     city: string
                     state: string | null
@@ -148,7 +148,7 @@ export type Database = {
                     property_type: 'departamento' | 'casa' | 'ph' | 'local' | 'oficina' | 'terreno' | 'cochera'
                     operation_type: 'venta' | 'alquiler' | 'alquiler_temporal'
                     rental_period?: string | null
-                    status?: 'disponible' | 'reservada' | 'alquilada' | 'vendida' | 'en_mantenimiento'
+                    status?: 'disponible' | 'reservada' | 'alquilada' | 'vendida' | 'en_mantenimiento' | 'archivada'
                     address: string
                     city: string
                     state?: string | null
@@ -191,7 +191,7 @@ export type Database = {
                     property_type?: 'departamento' | 'casa' | 'ph' | 'local' | 'oficina' | 'terreno' | 'cochera'
                     operation_type?: 'venta' | 'alquiler' | 'alquiler_temporal'
                     rental_period?: string | null
-                    status?: 'disponible' | 'reservada' | 'alquilada' | 'vendida' | 'en_mantenimiento'
+                    status?: 'disponible' | 'reservada' | 'alquilada' | 'vendida' | 'en_mantenimiento' | 'archivada'
                     address?: string
                     city?: string
                     state?: string | null
@@ -520,7 +520,7 @@ export type Database = {
             user_role: 'admin' | 'agente' | 'inquilino' | 'propietario'
             property_type: 'departamento' | 'casa' | 'ph' | 'local' | 'oficina' | 'terreno' | 'cochera'
             operation_type: 'venta' | 'alquiler' | 'alquiler_temporal'
-            property_status: 'disponible' | 'reservada' | 'alquilada' | 'vendida' | 'en_mantenimiento'
+            property_status: 'disponible' | 'reservada' | 'alquilada' | 'vendida' | 'en_mantenimiento' | 'archivada'
             contract_status: 'pendiente' | 'activo' | 'vencido' | 'cancelado'
             payment_status: 'pendiente' | 'pagado' | 'vencido' | 'cancelado'
             maintenance_priority: 'baja' | 'media' | 'alta' | 'urgente'
