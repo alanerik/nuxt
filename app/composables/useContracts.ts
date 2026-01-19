@@ -10,6 +10,12 @@ import type {
     ContractStatus
 } from '~/types/contract.types'
 
+// Type helpers
+type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]
+type ContractRow = Tables<'contracts'>['Row']
+type ContractInsertDB = Tables<'contracts'>['Insert']
+type ContractUpdateDB = Tables<'contracts'>['Update']
+
 export const useContracts = () => {
     const supabase = useSupabaseClient<Database>()
     const user = useSupabaseUser()
@@ -202,23 +208,10 @@ export const useContracts = () => {
      */
     const fetchAvailableProperties = async () => {
         try {
-            // Query simplificada - filtramos en cliente para evitar errores de tipos
             const { data, error: fetchError } = await supabase
                 .from('properties')
                 .select('id, title, address, city, images, operation_type, price, currency, status')
-                .order('title', { ascending: true }) as {
-                    data: Array<{
-                        id: string
-                        title: string
-                        address: string
-                        city: string
-                        images: string[] | null
-                        operation_type: string
-                        price: number
-                        currency: string
-                        status: string
-                    }> | null, error: Error | null
-                }
+                .order('title', { ascending: true })
 
             if (fetchError) throw fetchError
 
@@ -295,7 +288,7 @@ export const useContracts = () => {
 
         try {
             // Generar número de contrato si no existe
-            const insertData = { ...contractData }
+            const insertData: ContractInsertDB = { ...contractData }
             if (!insertData.contract_number) {
                 const year = new Date().getFullYear()
                 const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
@@ -310,13 +303,7 @@ export const useContracts = () => {
 
             if (insertError) throw insertError
 
-            // Actualizar estado de la propiedad a 'alquilada' si el contrato está activo
-            if (insertData.status === 'activo' && insertData.property_id) {
-                await supabase
-                    .from('properties')
-                    .update({ status: 'alquilada' })
-                    .eq('id', insertData.property_id)
-            }
+            // El trigger SQL actualiza automáticamente el estado de la propiedad
 
             return data as Contract
         } catch (e) {
@@ -337,9 +324,14 @@ export const useContracts = () => {
         error.value = null
 
         try {
+            const updateData: ContractUpdateDB = {
+                ...updates,
+                updated_at: new Date().toISOString()
+            }
+
             const { data, error: updateError } = await supabase
                 .from('contracts')
-                .update({ ...updates, updated_at: new Date().toISOString() })
+                .update(updateData)
                 .eq('id', id)
                 .select(getSelectQuery())
                 .single()
@@ -360,29 +352,26 @@ export const useContracts = () => {
     /**
      * Actualiza el estado de un contrato
      */
-    const updateContractStatus = async (id: string, status: ContractStatus, propertyId?: string) => {
+    const updateContractStatus = async (id: string, status: ContractStatus) => {
         loading.value = true
         error.value = null
 
         try {
+            const updateData: ContractUpdateDB = {
+                status,
+                updated_at: new Date().toISOString()
+            }
+
             const { data, error: updateError } = await supabase
                 .from('contracts')
-                .update({ status, updated_at: new Date().toISOString() })
+                .update(updateData)
                 .eq('id', id)
                 .select(getSelectQuery())
                 .single()
 
             if (updateError) throw updateError
 
-            // Actualizar estado de la propiedad según el estado del contrato
-            if (propertyId) {
-                const propertyStatus = status === 'activo' ? 'alquilada' : 'disponible'
-
-                await supabase
-                    .from('properties')
-                    .update({ status: propertyStatus })
-                    .eq('id', propertyId)
-            }
+            // El trigger SQL actualiza automáticamente el estado de la propiedad
 
             return data as Contract
         } catch (e) {
@@ -406,6 +395,8 @@ export const useContracts = () => {
 
             if (fetchError) throw fetchError
 
+            const contractsData = (data || []) as Array<Pick<ContractRow, 'status' | 'monthly_rent'>>
+
             const stats = {
                 total: 0,
                 activos: 0,
@@ -414,7 +405,7 @@ export const useContracts = () => {
                 ingresosMensuales: 0
             }
 
-            for (const contract of data || []) {
+            for (const contract of contractsData) {
                 stats.total++
                 switch (contract.status) {
                     case 'activo':
