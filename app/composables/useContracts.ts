@@ -129,6 +129,17 @@ export const useContracts = () => {
     }
 
     /**
+     * Helper para formatear errores
+     */
+    const formatError = (e: unknown): Error => {
+        if (e instanceof Error) return e
+        if (typeof e === 'object' && e !== null && 'message' in e) {
+            return new Error((e as any).message)
+        }
+        return new Error(String(e))
+    }
+
+    /**
      * Obtiene el listado de contratos con filtros
      */
     const fetchContracts = async (
@@ -167,7 +178,7 @@ export const useContracts = () => {
 
             return { data: result, total: total.value }
         } catch (e) {
-            const err = e instanceof Error ? e : new Error(String(e))
+            const err = formatError(e)
             error.value = err
             console.error('Error fetching contracts:', err)
             return { data: [], total: 0 }
@@ -194,7 +205,7 @@ export const useContracts = () => {
 
             return data as Contract
         } catch (e) {
-            const err = e instanceof Error ? e : new Error(String(e))
+            const err = formatError(e)
             error.value = err
             console.error('Error fetching contract:', err)
             return null
@@ -223,7 +234,7 @@ export const useContracts = () => {
 
             return filtered
         } catch (e) {
-            const err = e instanceof Error ? e : new Error(String(e))
+            const err = formatError(e)
             console.error('Error fetching available properties:', err)
             return []
         }
@@ -245,7 +256,7 @@ export const useContracts = () => {
 
             return data || []
         } catch (e) {
-            const err = e instanceof Error ? e : new Error(String(e))
+            const err = formatError(e)
             console.error('Error fetching tenants:', err)
             return []
         }
@@ -273,7 +284,7 @@ export const useContracts = () => {
 
             return data || []
         } catch (e) {
-            const err = e instanceof Error ? e : new Error(String(e))
+            const err = formatError(e)
             console.error('Error fetching agents:', err)
             return []
         }
@@ -307,7 +318,7 @@ export const useContracts = () => {
 
             return data as Contract
         } catch (e) {
-            const err = e instanceof Error ? e : new Error(String(e))
+            const err = formatError(e)
             error.value = err
             console.error('Error creating contract:', err)
             throw err
@@ -340,7 +351,7 @@ export const useContracts = () => {
 
             return data as Contract
         } catch (e) {
-            const err = e instanceof Error ? e : new Error(String(e))
+            const err = formatError(e)
             error.value = err
             console.error('Error updating contract:', err)
             throw err
@@ -375,7 +386,7 @@ export const useContracts = () => {
 
             return data as Contract
         } catch (e) {
-            const err = e instanceof Error ? e : new Error(String(e))
+            const err = formatError(e)
             error.value = err
             console.error('Error updating contract status:', err)
             throw err
@@ -423,7 +434,7 @@ export const useContracts = () => {
 
             return stats
         } catch (e) {
-            const err = e instanceof Error ? e : new Error(String(e))
+            const err = formatError(e)
             console.error('Error fetching contract stats:', err)
             return {
                 total: 0,
@@ -456,7 +467,7 @@ export const useContracts = () => {
 
             return (data || []) as Contract[]
         } catch (e) {
-            const err = e instanceof Error ? e : new Error(String(e))
+            const err = formatError(e)
             console.error('Error fetching expiring contracts:', err)
             return []
         }
