@@ -1,46 +1,58 @@
 <script setup lang="ts">
+import type { Database } from '~/types/database.types'
+
+const supabase = useSupabaseClient<Database>()
 const { isNotificationsSlideoverOpen } = useDashboard()
+const { 
+  notifications, 
+  unreadCount, 
+  fetchNotifications, 
+  markAsRead, 
+  markAllAsRead, 
+  subscribeToNotifications 
+} = useNotifications()
 
-// Demo notifications
-const notifications = ref([
-  {
-    id: 1,
-    title: 'Nuevo pago recibido',
-    description: 'Se ha registrado un pago de $1,500',
-    time: 'Hace 5 min',
-    read: false,
-    icon: 'i-lucide-credit-card'
-  },
-  {
-    id: 2,
-    title: 'Solicitud de mantenimiento',
-    description: 'Nueva solicitud en Propiedad #123',
-    time: 'Hace 1 hora',
-    read: false,
-    icon: 'i-lucide-wrench'
-  },
-  {
-    id: 3,
-    title: 'Contrato por vencer',
-    description: 'El contrato de Juan Pérez vence en 30 días',
-    time: 'Hace 2 horas',
-    read: true,
-    icon: 'i-lucide-file-text'
-  }
-])
+// Initial Load
+onMounted(() => {
+  fetchNotifications()
+  const channel = subscribeToNotifications()
+  
+  onUnmounted(() => {
+    if (channel) supabase.removeChannel(channel)
+  })
+})
 
-const markAsRead = (id: number) => {
-  const notification = notifications.value.find(n => n.id === id)
-  if (notification) {
-    notification.read = true
+const getIcon = (type: string) => {
+  switch (type) {
+    case 'payment': return 'i-lucide-credit-card'
+    case 'maintenance': return 'i-lucide-wrench'
+    case 'contract': return 'i-lucide-file-text'
+    case 'system': return 'i-lucide-info'
+    case 'alert': return 'i-lucide-alert-triangle'
+    default: return 'i-lucide-bell'
   }
 }
 
-const markAllAsRead = () => {
-  notifications.value.forEach(n => n.read = true)
+const getRelativeTime = (dateStr: string) => {
+  try {
+      // Simple custom format relative time to avoid importing full date-fns if not needed, 
+      // but since project seems to use specific formatting, let's try a simple approach first
+      // or use Intl.RelativeTimeFormat
+      const date = new Date(dateStr)
+      const now = new Date()
+      const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+      
+      if (diffInSeconds < 60) return 'Hace unos segundos'
+      const diffInMinutes = Math.floor(diffInSeconds / 60)
+      if (diffInMinutes < 60) return `Hace ${diffInMinutes} min`
+      const diffInHours = Math.floor(diffInMinutes / 60)
+      if (diffInHours < 24) return `Hace ${diffInHours} h`
+      const diffInDays = Math.floor(diffInHours / 24)
+      return `Hace ${diffInDays} días`
+  } catch (e) {
+      return ''
+  }
 }
-
-const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
 </script>
 
 <template>
@@ -65,25 +77,25 @@ const unreadCount = computed(() => notifications.value.filter(n => !n.read).leng
           <div
             v-for="notification in notifications"
             :key="notification.id"
-            class="flex gap-3 p-3 rounded-lg transition-colors"
-            :class="notification.read ? 'bg-muted/30' : 'bg-primary/5 hover:bg-primary/10'"
+            class="flex gap-3 p-3 rounded-lg transition-colors cursor-pointer"
+            :class="notification.is_read ? 'bg-muted/30' : 'bg-primary/5 hover:bg-primary/10'"
             @click="markAsRead(notification.id)"
           >
             <div class="shrink-0">
-              <UIcon :name="notification.icon" class="size-5 text-primary" />
+              <UIcon :name="getIcon(notification.type || 'system')" class="size-5 text-primary" />
             </div>
             <div class="flex-1 min-w-0">
-              <p class="font-medium text-sm" :class="{ 'text-muted': notification.read }">
+              <p class="font-medium text-sm" :class="{ 'text-muted': notification.is_read }">
                 {{ notification.title }}
               </p>
               <p class="text-sm text-muted truncate">
-                {{ notification.description }}
+                {{ notification.message }}
               </p>
               <p class="text-xs text-muted mt-1">
-                {{ notification.time }}
+                {{ getRelativeTime(notification.created_at) }}
               </p>
             </div>
-            <div v-if="!notification.read" class="shrink-0">
+            <div v-if="!notification.is_read" class="shrink-0">
               <span class="size-2 rounded-full bg-primary block" />
             </div>
           </div>
