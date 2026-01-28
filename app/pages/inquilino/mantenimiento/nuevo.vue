@@ -130,8 +130,8 @@ const handleSubmit = async () => {
                         <USelectMenu
                             v-model="form.priority"
                             :options="priorityOptions"
-                            value-attribute="value"
                             option-attribute="label"
+                            value-attribute="value"
                         />
                     </UFormGroup>
 
