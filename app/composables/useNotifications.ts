@@ -11,7 +11,7 @@ export const useNotifications = () => {
     const loading = ref(false)
 
     const fetchNotifications = async () => {
-        if (!user.value) return
+        if (!user.value?.id) return
 
         try {
             loading.value = true

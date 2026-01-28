@@ -72,10 +72,19 @@ const chartPoints = computed(() => {
 const chartFillPath = computed(() => {
   if (!chartPoints.value) return ''
   const height = containerHeight
-  const width = containerWidth.value // Ensure it closes correctly
+  const width = containerWidth.value
+  
+  // Convert "x,y x,y" format to ["x,y", "x,y"]
+  const pointsArr = chartPoints.value.split(' ')
+  if(pointsArr.length === 0) return ''
+
+  const firstPoint = pointsArr[0]
+  const restPoints = pointsArr.slice(1).map(p => `L ${p}`).join(' ')
+  
   const lastPointX = (revenueHistory.value.length - 1) * (width / (revenueHistory.value.length - 1 || 1))
   
-  return `${chartPoints.value} ${lastPointX},${height} 0,${height}`
+  // M x,y (start) -> L x,y (points) ... -> L x,maxY (bottom right) -> L 0,maxY (bottom left) -> Z (close)
+  return `M ${firstPoint} ${restPoints} L ${lastPointX},${height} L 0,${height} Z`
 })
 
 // Transaction Table Columns

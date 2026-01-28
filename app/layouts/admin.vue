@@ -42,6 +42,12 @@ const links = [[
     onSelect: () => open.value = false
   },
   {
+    label: 'Mantenimiento',
+    icon: 'i-lucide-wrench',
+    to: '/admin/mantenimiento',
+    onSelect: () => open.value = false
+  },
+  {
     label: 'Reportes',
     icon: 'i-lucide-bar-chart-3',
     to: '/admin/reportes',
