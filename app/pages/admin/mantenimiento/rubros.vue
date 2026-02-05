@@ -104,7 +104,19 @@ const columns = [
   <UDashboardPanel>
     <template #header>
       <UDashboardNavbar title="Gestión de Rubros">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+
         <template #right>
+          <UButton 
+            to="/admin/mantenimiento"
+            icon="i-lucide-arrow-left"
+            variant="ghost"
+            color="neutral"
+          >
+            Volver
+          </UButton>
           <UButton 
             label="Nuevo Rubro" 
             icon="i-lucide-plus" 
@@ -114,62 +126,74 @@ const columns = [
       </UDashboardNavbar>
     </template>
 
-    <div class="p-6">
-      <UCard :ui="{ body: { padding: 'p-0 sm:p-0' } }">
-        <UTable :columns="columns" :rows="categories" :loading="loading">
-          <template #status-data="{ row }">
-            <UBadge :color="row.is_active ? 'success' : 'neutral'" variant="subtle" size="xs">
-              {{ row.is_active ? 'Activo' : 'Inactivo' }}
-            </UBadge>
-          </template>
+    <template #body>
+      <div class="p-6 space-y-6">
+        <UCard :ui="{ body: { padding: 'p-0 sm:p-0' } }">
+          <UTable :columns="columns" :rows="categories" :loading="loading">
+            <template #status-data="{ row }">
+              <UBadge :color="row.is_active ? 'success' : 'neutral'" variant="subtle" size="xs">
+                {{ row.is_active ? 'Activo' : 'Inactivo' }}
+              </UBadge>
+            </template>
 
-          <template #actions-data="{ row }">
-            <div class="flex justify-end gap-2">
-              <UButton 
-                icon="i-lucide-pencil" 
-                color="neutral" 
-                variant="ghost" 
-                size="xs"
-                @click="openEditModal(row)" 
-              />
-              <UButton 
-                icon="i-lucide-trash" 
-                color="error" 
-                variant="ghost" 
-                size="xs"
-                @click="handleDelete(row.id)" 
-              />
-            </div>
-          </template>
-        </UTable>
-      </UCard>
+            <template #actions-data="{ row }">
+              <div class="flex justify-end gap-2">
+                <UButton 
+                  icon="i-lucide-pencil" 
+                  color="neutral" 
+                  variant="ghost" 
+                  size="xs"
+                  @click="openEditModal(row)" 
+                />
+                <UButton 
+                  icon="i-lucide-trash" 
+                  color="error" 
+                  variant="ghost" 
+                  size="xs"
+                  @click="handleDelete(row.id)" 
+                />
+              </div>
+            </template>
+          </UTable>
 
-      <UModal v-model="isModalOpen">
-        <UCard>
-          <template #header>
-            <h3 class="font-semibold">
-              {{ editingCategory ? 'Editar Rubro' : 'Nuevo Rubro' }}
-            </h3>
-          </template>
-
-          <div class="space-y-4">
-            <UFormGroup label="Nombre">
-              <UInput v-model="formData.name" placeholder="Ej: Plomería" />
-            </UFormGroup>
-            
-            <UFormGroup label="Descripción">
-              <UInput v-model="formData.description" placeholder="Breve descripción del rubro" />
-            </UFormGroup>
+          <div v-if="!loading && categories.length === 0" class="text-center py-12">
+            <UIcon name="i-lucide-folder" class="size-16 mx-auto mb-4 text-muted" />
+            <h3 class="text-lg font-semibold mb-2">No hay rubros</h3>
+            <UButton @click="openCreateModal">Crear Rubro</UButton>
           </div>
-
-          <template #footer>
-            <div class="flex justify-end gap-2">
-              <UButton color="neutral" variant="ghost" @click="isModalOpen = false">Cancelar</UButton>
-              <UButton color="primary" @click="handleSave" :disabled="!formData.name">Guardar</UButton>
-            </div>
-          </template>
         </UCard>
-      </UModal>
-    </div>
+
+        <UModal v-model="isModalOpen">
+          <div class="p-6">
+            <UCard>
+              <template #header>
+                <h3 class="font-semibold text-lg">
+                  {{ editingCategory ? 'Editar Rubro' : 'Nuevo Rubro' }}
+                </h3>
+              </template>
+
+              <div class="space-y-4">
+                <div>
+                  <label class="text-sm font-medium mb-2 block">Nombre</label>
+                  <UInput v-model="formData.name" placeholder="Ej: Plomería" />
+                </div>
+                
+                <div>
+                  <label class="text-sm font-medium mb-2 block">Descripción</label>
+                  <UInput v-model="formData.description" placeholder="Breve descripción del rubro" />
+                </div>
+              </div>
+
+              <template #footer>
+                <div class="flex justify-end gap-2">
+                  <UButton color="neutral" variant="ghost" @click="isModalOpen = false">Cancelar</UButton>
+                  <UButton color="primary" @click="handleSave" :disabled="!formData.name">Guardar</UButton>
+                </div>
+              </template>
+            </UCard>
+          </div>
+        </UModal>
+      </div>
+    </template>
   </UDashboardPanel>
 </template>

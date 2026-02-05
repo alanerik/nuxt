@@ -74,12 +74,18 @@ export const useMaintenance = () => {
             }
 
             const { data, error: err } = await query
-            if (err) throw err
+            
+            if (err) {
+                console.error('Error fetching requests - Details:', err)
+                throw err
+            }
 
+            console.log('Fetched maintenance requests:', data)
             requests.value = data as MaintenanceRequest[]
         } catch (e) {
             error.value = e as Error
             console.error('Error fetching requests:', e)
+            requests.value = []
         } finally {
             loading.value = false
         }
@@ -124,23 +130,57 @@ export const useMaintenance = () => {
     }) => {
         loading.value = true
         try {
-            if (!user.value) throw new Error('Usuario no autenticado')
+            // Get current user session
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+            
+            if (sessionError) {
+                throw new Error('Error obteniendo sesión: ' + sessionError.message)
+            }
+            
+            if (!session?.user?.id) {
+                throw new Error('Usuario no autenticado')
+            }
+
+            // Validar campos requeridos
+            if (!payload.property_id) throw new Error('property_id es requerido')
+            if (!payload.title) throw new Error('title es requerido')
+            if (!payload.priority) throw new Error('priority es requerido')
+
+            const userId = session.user.id
+
+            const insertPayload: any = {
+                property_id: payload.property_id,
+                title: payload.title,
+                description: payload.description || '',
+                category: payload.category || null,
+                priority: payload.priority,
+                tenant_id: userId,
+                status: 'pendiente',
+                reported_date: new Date().toISOString()
+            }
+
+            if (payload.images?.length) {
+                insertPayload.images = payload.images
+            }
+
+            console.log('Creating maintenance request with payload:', insertPayload)
 
             const { data, error: err } = await supabase
                 .from('maintenance_requests')
-                .insert({
-                    tenant_id: user.value.id,
-                    status: 'pendiente',
-                    reported_date: new Date().toISOString(),
-                    ...payload
-                })
+                .insert(insertPayload)
                 .select()
                 .single()
 
-            if (err) throw err
+            if (err) {
+                console.error('Insert error details:', err)
+                throw new Error(err.message || 'Error al crear la solicitud')
+            }
+            
+            console.log('Created maintenance request:', data)
             return data
         } catch (e) {
             error.value = e as Error
+            console.error('Create request error:', e)
             throw e
         } finally {
             loading.value = false

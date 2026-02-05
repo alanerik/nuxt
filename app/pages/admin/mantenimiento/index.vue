@@ -7,6 +7,7 @@ definePageMeta({
 
 // Filters
 const statusFilter = ref('all')
+const searchQuery = ref('')
 const statusOptions = [
   { value: 'all', label: 'Todos' },
   { value: 'pendiente', label: 'Pendientes' },
@@ -15,8 +16,32 @@ const statusOptions = [
   { value: 'cancelado', label: 'Cancelados' }
 ]
 
+// Computed filtered requests
+const filteredRequests = computed(() => {
+  let result = requests.value
+  console.log('Filtered requests computed - Total requests:', requests.value.length)
+
+  // Filtrar por búsqueda
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    result = result.filter(r => 
+      r.title?.toLowerCase().includes(query) ||
+      r.property?.title?.toLowerCase().includes(query) ||
+      r.tenant?.full_name?.toLowerCase().includes(query)
+    )
+  }
+
+  console.log('After search filter:', result.length)
+  return result
+})
+
 onMounted(() => {
+  console.log('Mantenimiento page mounted')
   loadData()
+  
+  // Recargar datos cada 30 segundos
+  const interval = setInterval(loadData, 30000)
+  onBeforeUnmount(() => clearInterval(interval))
 })
 
 const loadData = () => {
@@ -24,11 +49,11 @@ const loadData = () => {
     if (statusFilter.value !== 'all') {
         filters.status = statusFilter.value
     }
-    // TODO: Add property/tenant filter if needed from UI
+    console.log('Loading maintenance requests with filters:', filters)
     fetchRequests(filters)
 }
 
-watch(statusFilter, () => {
+watch([statusFilter], () => {
     loadData()
 })
 
@@ -71,8 +96,8 @@ const columns = [
 const handleStatusChange = async (request: any, newStatus: string) => {
     try {
         await updateRequestStatus(request.id, newStatus)
-        // Toast handled in composable or here, composable updates state local
         useToast().add({ title: 'Estado actualizado', color: 'success' })
+        loadData()
     } catch (e) {
         useToast().add({ title: 'Error al actualizar', color: 'error' })
     }
@@ -83,68 +108,81 @@ const handleStatusChange = async (request: any, newStatus: string) => {
   <UDashboardPanel>
     <template #header>
       <UDashboardNavbar title="Mantenimiento">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+
         <template #right>
            <UButton 
-             to="/admin/mantenimiento/rubros" 
-             color="primary" 
-             variant="solid" 
-             icon="i-lucide-list" 
-             label="Gestionar Rubros" 
+             to="/admin/mantenimiento/nuevo" 
+             icon="i-lucide-plus" 
+             label="Nueva Solicitud" 
            />
         </template>
       </UDashboardNavbar>
     </template>
 
-    <div class="p-6 space-y-6">
-        <!-- Stats / Cards could go here -->
-
+    <template #body>
+      <div class="p-6 space-y-6">
         <!-- Filters -->
-        <div class="flex gap-4">
-             <USelectMenu
-                v-model="statusFilter"
-                :items="statusOptions"
-                value-key="value"
-                class="w-48"
-             />
-        </div>
+        <UCard>
+          <div class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1">
+              <UInput
+                v-model="searchQuery"
+                placeholder="Buscar por título, propiedad o inquilino..."
+                icon="i-lucide-search"
+                size="lg"
+              />
+            </div>
 
-        <!-- Request Board (List for now) -->
+            <USelectMenu
+              v-model="statusFilter"
+              :items="statusOptions"
+              value-key="value"
+              size="lg"
+              class="w-full md:w-48"
+            />
+          </div>
+        </UCard>
+
+        <!-- Table -->
         <UCard :ui="{ body: { padding: 'p-0 sm:p-0' } }">
             <UTable :columns="columns" :rows="requests" :loading="loading">
-                <template #title-data="{ row }">
+                <template #title-cell="{ row }">
                    <div>
                        <p class="font-medium">{{ row.title }}</p>
                        <p class="text-xs text-muted">{{ row.category || 'Sin categoría' }}</p>
                    </div>
                 </template>
 
-                 <template #property-data="{ row }">
+                 <template #property-cell="{ row }">
                    <div>
                        <p class="text-sm font-medium">{{ row.property?.title || 'Sin propiedad' }}</p>
                        <p class="text-xs text-muted">{{ row.property?.address }}</p>
                    </div>
                 </template>
 
-                 <template #tenant-data="{ row }">
+                 <template #tenant-cell="{ row }">
                    <div>
                        <p class="text-sm font-medium">{{ row.tenant?.full_name || 'Desconocido' }}</p>
                        <p class="text-xs text-muted">{{ row.tenant?.email }}</p>
                    </div>
                 </template>
 
-                <template #priority-data="{ row }">
+                <template #priority-cell="{ row }">
                     <UBadge :color="getPriorityColor(row.priority)" variant="subtle" size="xs">
                         {{ row.priority?.toUpperCase() }}
                     </UBadge>
                 </template>
 
-                <template #status-data="{ row }">
+                <template #status-cell="{ row }">
                      <UBadge :color="getStatusColor(row.status)" variant="soft" size="xs">
                         {{ row.status?.replace('_', ' ').toUpperCase() }}
                     </UBadge>
                 </template>
                 
-                <template #actions-data="{ row }">
+                <template #actions-cell="{ row }">
                     <div class="flex items-center justify-end gap-2">
                          <UDropdownMenu :items="[
                             [
@@ -159,10 +197,13 @@ const handleStatusChange = async (request: any, newStatus: string) => {
                 </template>
             </UTable>
 
-            <div v-if="!loading && requests.length === 0" class="p-8 text-center text-muted">
-                No hay solicitudes de mantenimiento.
+            <div v-if="!loading && requests.length === 0" class="text-center py-12">
+                <UIcon name="i-lucide-wrench" class="size-16 mx-auto mb-4 text-muted" />
+                <h3 class="text-lg font-semibold mb-2">No hay solicitudes de mantenimiento</h3>
+                <UButton to="/admin/mantenimiento/nuevo">Nueva Solicitud</UButton>
             </div>
         </UCard>
-    </div>
+      </div>
+    </template>
   </UDashboardPanel>
 </template>

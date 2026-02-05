@@ -121,6 +121,10 @@ const formatDate = (dateStr: string | null) => {
   <UDashboardPanel>
     <template #header>
       <UDashboardNavbar title="Reportes">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+
         <template #right>
           <UButton 
             icon="i-lucide-download" 
@@ -132,22 +136,23 @@ const formatDate = (dateStr: string | null) => {
       </UDashboardNavbar>
     </template>
 
-    <div class="p-6 space-y-6 overflow-y-auto">
-      <!-- Top Filters / Header -->
-      <div class="flex items-center justify-between">
-        <h2 class="text-lg font-semibold flex items-center gap-2">
-          <UIcon name="i-lucide-bar-chart-3" class="size-5 text-muted" />
-          <span>Resumen de Ingresos</span>
-        </h2>
-        
-        <div class="flex items-center gap-2">
+    <template #body>
+      <div class="p-6 space-y-6">
+        <!-- Date Filters -->
+        <UCard>
+          <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+            <h3 class="font-semibold flex items-center gap-2">
+              <UIcon name="i-lucide-bar-chart-3" class="size-5 text-muted" />
+              <span>Resumen de Ingresos</span>
+            </h3>
+            
             <div class="flex items-center gap-2 bg-white dark:bg-gray-900 p-1 rounded-md border border-gray-200 dark:border-gray-800">
                 <UInputDate v-model="startDate" />
                 <span class="text-muted text-sm px-1">hasta</span>
                 <UInputDate v-model="endDate" />
             </div>
-        </div>
-      </div>
+          </div>
+        </UCard>
 
       <!-- Stats Cards -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -294,6 +299,7 @@ const formatDate = (dateStr: string | null) => {
           </template>
         </UTable>
       </UCard>
-    </div>
+      </div>
+    </template>
   </UDashboardPanel>
 </template>
