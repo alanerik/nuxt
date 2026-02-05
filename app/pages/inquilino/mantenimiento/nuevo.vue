@@ -8,29 +8,27 @@ definePageMeta({
 
 const router = useRouter()
 const { createRequest, fetchCategories, categories, loading } = useMaintenance()
-const { fetchActiveContracts } = usePayments() // Reuse this to get properties if suitable or fetch manually
-
 const user = useSupabaseUser()
 const supabase = useSupabaseClient()
+const toast = useToast()
 
 // State
 const myProperties = ref<PropertyRow[]>([])
 const loadingProps = ref(false)
+const errors = ref<Record<string, string>>({})
 
 const form = ref({
     property_id: '',
-    category: '', // Rubro name
+    category: '',
     priority: 'media',
     title: '',
-    description: '',
-    images: [] as string[]
+    description: ''
 })
 
 const priorityOptions = [
-    { value: 'baja', label: 'Baja - Puede esperar' },
-    { value: 'media', label: 'Media - Necesita atención' },
-    { value: 'alta', label: 'Alta - Urgente' },
-    { value: 'urgente', label: 'Emergencia - Inmediato' }
+    { value: 'baja', label: 'Baja' },
+    { value: 'media', label: 'Media' },
+    { value: 'alta', label: 'Alta' }
 ]
 
 // Load initial data
@@ -64,21 +62,52 @@ const fetchMyProperties = async () => {
     }
 }
 
+const validateForm = () => {
+  errors.value = {}
+  
+  if (!form.value.property_id) {
+    errors.value.property_id = 'Debe seleccionar una propiedad'
+  }
+  if (!form.value.title) {
+    errors.value.title = 'El título es requerido'
+  }
+  if (!form.value.category) {
+    errors.value.category = 'Debe seleccionar una categoría'
+  }
+  if (!form.value.priority) {
+    errors.value.priority = 'Debe seleccionar una prioridad'
+  }
+
+  return Object.keys(errors.value).length === 0
+}
+
 const handleSubmit = async () => {
+    if (!validateForm()) return
+
     try {
         await createRequest({
             property_id: form.value.property_id,
             category: form.value.category,
             priority: form.value.priority,
             title: form.value.title,
-            description: form.value.description,
-            images: form.value.images
+            description: form.value.description
         })
         
-        useToast().add({ title: 'Solicitud enviada', description: 'El agente ha sido notificado.', color: 'success' })
+        toast.add({ 
+            title: 'Solicitud enviada', 
+            description: 'Los administradores han sido notificados de tu problema.', 
+            color: 'success' 
+        })
+        
+        await new Promise(resolve => setTimeout(resolve, 1000))
         router.push('/inquilino/mantenimiento')
     } catch (e) {
-        useToast().add({ title: 'Error', description: 'No se pudo enviar la solicitud.', color: 'error' })
+        console.error('Error:', e)
+        toast.add({ 
+            title: 'Error', 
+            description: 'No se pudo enviar la solicitud.', 
+            color: 'error' 
+        })
     }
 }
 </script>
@@ -88,77 +117,134 @@ const handleSubmit = async () => {
     <template #header>
       <UDashboardNavbar title="Nueva Solicitud de Mantenimiento">
         <template #leading>
-            <UButton icon="i-lucide-arrow-left" variant="ghost" to="/inquilino/mantenimiento" />
+          <UDashboardSidebarCollapse />
+        </template>
+
+        <template #right>
+          <UButton 
+            icon="i-lucide-arrow-left" 
+            to="/inquilino/mantenimiento"
+            variant="ghost"
+            color="neutral"
+            label="Volver"
+          />
         </template>
       </UDashboardNavbar>
     </template>
 
-    <div class="p-6 max-w-2xl mx-auto">
+    <template #body>
+      <div class="p-6 space-y-6 max-w-lg mx-auto">
         <form @submit.prevent="handleSubmit" class="space-y-6">
-            
+          
+          <!-- Propiedad -->
+          <UCard>
+            <template #header>
+              <h3 class="font-semibold">Propiedad</h3>
+            </template>
+
+            <div v-if="myProperties.length > 1">
+              <USelectMenu
+                v-model="form.property_id"
+                :items="myProperties.map(p => ({ value: p.id, label: p.title }))"
+                value-key="value"
+                placeholder="Seleccionar propiedad..."
+                searchable
+                :error="!!errors.property_id"
+              />
+              <p v-if="errors.property_id" class="text-sm text-error mt-2">
+                {{ errors.property_id }}
+              </p>
+            </div>
+            <div v-else-if="myProperties.length === 1" class="p-3 rounded-lg bg-primary/5 border border-primary/20">
+              <p class="text-sm font-medium">{{ myProperties[0].title }}</p>
+            </div>
+            <div v-else class="p-3 rounded-lg bg-warning/5 border border-warning/20">
+              <p class="text-sm text-warning font-medium">No tienes propiedades disponibles</p>
+            </div>
+          </UCard>
+
+          <!-- Categoría y Prioridad -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <UCard>
-                <div class="space-y-4">
-                    <!-- Property Selection -->
-                    <div v-if="myProperties.length > 1">
-                        <UFormGroup label="Propiedad afectada" required>
-                             <USelectMenu
-                                v-model="form.property_id"
-                                :options="myProperties"
-                                option-attribute="title"
-                                value-attribute="id"
-                                placeholder="Selecciona la propiedad"
-                             />
-                        </UFormGroup>
-                    </div>
-                    <div v-else-if="myProperties.length === 1" class="text-sm text-muted">
-                        Solicitud para: <span class="font-medium text-foreground">{{ myProperties[0].title }}</span>
-                    </div>
+              <template #header>
+                <h3 class="font-semibold">Categoría</h3>
+              </template>
 
-                    <!-- Category (Rubro) -->
-                    <UFormGroup label="Rubro (Categoría)" required>
-                        <USelectMenu
-                            v-model="form.category"
-                            :options="categories"
-                            option-attribute="name"
-                            value-attribute="name"
-                            placeholder="Ej: Plomería, Electricidad..."
-                            searchable
-                        />
-                    </UFormGroup>
-
-                    <!-- Priority -->
-                    <UFormGroup label="Prioridad" required>
-                        <USelectMenu
-                            v-model="form.priority"
-                            :options="priorityOptions"
-                            option-attribute="label"
-                            value-attribute="value"
-                        />
-                    </UFormGroup>
-
-                    <!-- Title -->
-                     <UFormGroup label="Título del problema" required>
-                        <UInput v-model="form.title" placeholder="Ej: Cañería rota en el baño" />
-                    </UFormGroup>
-
-                    <!-- Description -->
-                    <UFormGroup label="Descripción detallada" required>
-                        <UTextarea 
-                            v-model="form.description" 
-                            placeholder="Describe el problema con el mayor detalle posible..."
-                            :rows="4"
-                        />
-                    </UFormGroup>
-                </div>
-
-                <template #footer>
-                    <div class="flex justify-end gap-3">
-                        <UButton label="Cancelar" to="/inquilino/mantenimiento" variant="ghost" color="neutral" />
-                        <UButton type="submit" label="Enviar Solicitud" :loading="loading" :disabled="!form.title || !form.category" />
-                    </div>
-                </template>
+              <USelectMenu
+                v-model="form.category"
+                :items="categories.map(c => ({ value: c.name, label: c.name }))"
+                value-key="value"
+                placeholder="Seleccionar categoría..."
+                searchable
+                :error="!!errors.category"
+              />
+              <p v-if="errors.category" class="text-sm text-error mt-2">
+                {{ errors.category }}
+              </p>
             </UCard>
+
+            <UCard>
+              <template #header>
+                <h3 class="font-semibold">Prioridad</h3>
+              </template>
+
+              <USelectMenu
+                v-model="form.priority"
+                :items="priorityOptions"
+                value-key="value"
+                :error="!!errors.priority"
+              />
+              <p v-if="errors.priority" class="text-sm text-error mt-2">
+                {{ errors.priority }}
+              </p>
+            </UCard>
+          </div>
+
+          <!-- Título -->
+          <UCard>
+            <template #header>
+              <h3 class="font-semibold">Título</h3>
+            </template>
+
+            <UInput
+              v-model="form.title"
+              placeholder="Descripción breve del problema..."
+              :error="!!errors.title"
+            />
+            <p v-if="errors.title" class="text-sm text-error mt-2">
+              {{ errors.title }}
+            </p>
+          </UCard>
+
+          <!-- Descripción -->
+          <UCard>
+            <template #header>
+              <h3 class="font-semibold">Descripción Detallada</h3>
+            </template>
+
+            <textarea
+              v-model="form.description"
+              placeholder="Describe el problema en detalle..."
+              class="w-full px-3 py-2 border border-gray-200 dark:border-gray-800 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
+              rows="5"
+            />
+          </UCard>
+
+          <!-- Botones -->
+          <div class="flex gap-3 justify-end">
+            <UButton
+              to="/inquilino/mantenimiento"
+              variant="ghost"
+              label="Cancelar"
+            />
+            <UButton
+              type="submit"
+              :loading="loading"
+              label="Enviar Solicitud"
+            />
+          </div>
         </form>
-    </div>
+      </div>
+    </template>
   </UDashboardPanel>
 </template>

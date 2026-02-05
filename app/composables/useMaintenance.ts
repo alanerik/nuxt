@@ -174,6 +174,38 @@ export const useMaintenance = () => {
                 throw new Error(err.message || 'Error al crear la solicitud')
             }
             
+            // Crear notificación para el administrador
+            if (data) {
+                try {
+                    // Obtener todos los administradores
+                    const { data: admins, error: adminError } = await supabase
+                        .from('profiles')
+                        .select('id')
+                        .eq('role', 'admin') as { data: Array<{id: string}> | null; error: any }
+
+                    if (!adminError && admins && admins.length > 0) {
+                        // Crear notificación para cada admin
+                        const notifications = admins.map(admin => ({
+                            user_id: admin.id,
+                            type: 'maintenance',
+                            title: 'Nueva solicitud de mantenimiento',
+                            message: `${payload.title} - Propiedad: ${payload.property_id}`,
+                            entity_type: 'maintenance_request',
+                            entity_id: (data as any).id,
+                            is_read: false,
+                            created_at: new Date().toISOString()
+                        }))
+
+                        await supabase
+                            .from('notifications')
+                            .insert(notifications as never)
+                    }
+                } catch (notifError) {
+                    console.error('Error creating notification:', notifError)
+                    // No fallar la solicitud si las notificaciones fallan
+                }
+            }
+            
             return data
         } catch (e) {
             error.value = e as Error
