@@ -338,6 +338,42 @@ export const usePayments = () => {
 
             if (updateError) throw updateError
 
+            // Crear notificación para los administradores
+            if (data) {
+                try {
+                    // Obtener todos los administradores
+                    const { data: admins, error: adminError } = await supabase
+                        .from('profiles')
+                        .select('id')
+                        .eq('role', 'admin') as { data: Array<{id: string}> | null; error: any }
+
+                    if (!adminError && admins && admins.length > 0) {
+                        const tenantName = (data as any).tenant?.full_name || 'Un inquilino'
+                        const amount = (data as any).amount || 0
+                        const currency = (data as any).currency || 'ARS'
+                        
+                        // Crear notificación para cada admin
+                        const notifications = admins.map(admin => ({
+                            user_id: admin.id,
+                            type: 'payment',
+                            title: 'Nuevo pago registrado',
+                            message: `${tenantName} ha pagado un pago - ${amount} ${currency}`,
+                            entity_type: 'payment',
+                            entity_id: (data as any).id,
+                            is_read: false,
+                            created_at: new Date().toISOString()
+                        }))
+
+                        await supabase
+                            .from('notifications')
+                            .insert(notifications as never)
+                    }
+                } catch (notifError) {
+                    console.error('Error creating notification:', notifError)
+                    // No fallar el pago si las notificaciones fallan
+                }
+            }
+
             return data as Payment
         } catch (e) {
             const err = e instanceof Error ? e : new Error(String(e))
