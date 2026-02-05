@@ -143,11 +143,10 @@ const handleVerify = async (agent: Agent) => {
           </UTooltip>
 
           <UButton 
-            icon="i-lucide-plus" 
+            icon="i-lucide-plus"
+            label="Nuevo Agente"
             to="/admin/agentes/nuevo"
-          >
-            Nuevo Agente
-          </UButton>
+          />
         </template>
       </UDashboardNavbar>
     </template>
@@ -340,7 +339,7 @@ const handleVerify = async (agent: Agent) => {
             <UIcon name="i-lucide-users" class="size-16 mx-auto mb-4 text-muted" />
             <h3 class="text-lg font-semibold mb-2">No hay agentes</h3>
             <p class="text-muted mb-4">No se encontraron agentes con los filtros seleccionados.</p>
-            <UButton to="/admin/agentes/nuevo">Nuevo Agente</UButton>
+            <UButton label="Nuevo Agente" to="/admin/agentes/nuevo" />
           </div>
         </UCard>
       </div>

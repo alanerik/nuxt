@@ -134,10 +134,9 @@ const getInitials = (name: string | null) => {
             color="neutral"
             variant="ghost"
             icon="i-lucide-arrow-left"
+            label="Volver"
             @click="router.push(`/admin/agentes/${agentId}`)"
-          >
-            Volver
-          </UButton>
+          />
         </template>
 
         <template #title>
@@ -265,17 +264,15 @@ const getInitials = (name: string | null) => {
               <UButton
                 color="neutral"
                 variant="ghost"
+                label="Cancelar"
                 @click="router.push(`/admin/agentes/${agentId}`)"
-              >
-                Cancelar
-              </UButton>
+              />
               <UButton
                 type="submit"
+                label="Guardar Cambios"
                 :loading="saving"
                 icon="i-lucide-save"
-              >
-                Guardar Cambios
-              </UButton>
+              />
             </div>
           </form>
         </UCard>

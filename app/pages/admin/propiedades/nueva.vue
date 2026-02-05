@@ -619,20 +619,18 @@ const handleSubmit = async () => {
               <UButton
                 variant="ghost"
                 icon="i-lucide-arrow-left"
+                label="Cancelar"
                 to="/admin/propiedades"
-              >
-                Cancelar
-              </UButton>
+              />
 
               <UButton
                 type="submit"
                 size="lg"
+                label="Publicar Propiedad"
                 :loading="loading"
                 :disabled="!isFormValid"
                 icon="i-lucide-check"
-              >
-                Publicar Propiedad
-              </UButton>
+              />
             </div>
           </div>
 

@@ -153,10 +153,8 @@ const handleSubmit = async () => {
 
                 <template #footer>
                     <div class="flex justify-end gap-3">
-                        <UButton to="/inquilino/mantenimiento" variant="ghost" color="neutral">Cancelar</UButton>
-                        <UButton type="submit" :loading="loading" :disabled="!form.title || !form.category">
-                            Enviar Solicitud
-                        </UButton>
+                        <UButton label="Cancelar" to="/inquilino/mantenimiento" variant="ghost" color="neutral" />
+                        <UButton type="submit" label="Enviar Solicitud" :loading="loading" :disabled="!form.title || !form.category" />
                     </div>
                 </template>
             </UCard>

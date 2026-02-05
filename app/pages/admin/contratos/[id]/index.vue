@@ -146,18 +146,16 @@ const handleCancel = async () => {
               color="error"
               variant="soft"
               icon="i-lucide-x"
+              label="Cancelar"
               @click="handleCancel"
-            >
-              Cancelar
-            </UButton>
+            />
             <UButton
               color="primary"
               variant="ghost"
               icon="i-lucide-pencil"
+              label="Editar"
               @click="navigateTo(`/admin/contratos/${contract.id}/editar`)"
-            >
-              Editar
-            </UButton>
+            />
           </template>
         </template>
       </UDashboardNavbar>
@@ -400,10 +398,9 @@ const handleCancel = async () => {
             <UButton 
               variant="soft" 
               icon="i-lucide-credit-card"
+              label="Crear Pago"
               to="/admin/pagos/nuevo"
-            >
-              Crear Pago
-            </UButton>
+            />
             <UButton 
               variant="soft" 
               icon="i-lucide-file-text"

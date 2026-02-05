@@ -75,9 +75,8 @@ const getActivityColor = (type: string) => {
             to="/admin/dashboard"
             variant="ghost"
             color="neutral"
-          >
-            Volver
-          </UButton>
+            label="Volver"
+          />
         </template>
       </UDashboardNavbar>
     </template>
@@ -172,9 +171,7 @@ const getActivityColor = (type: string) => {
             <p class="text-sm text-muted">
               Mostrando {{ filteredActivities.length }} de {{ activities.length }} actividades
             </p>
-            <UButton size="sm" variant="ghost" @click="searchQuery = ''; statusFilter = 'all'">
-              Limpiar filtros
-            </UButton>
+            <UButton size="sm" variant="ghost" label="Limpiar filtros" @click="searchQuery = ''; statusFilter = 'all'" />
           </div>
         </UCard>
       </div>

@@ -129,9 +129,8 @@ const priorityOptions = [
             to="/admin/mantenimiento"
             variant="ghost"
             color="neutral"
-          >
-            Volver
-          </UButton>
+            label="Volver"
+          />
         </template>
       </UDashboardNavbar>
     </template>
@@ -230,15 +229,13 @@ const priorityOptions = [
             <UButton
               to="/admin/mantenimiento"
               variant="ghost"
-            >
-              Cancelar
-            </UButton>
+              label="Cancelar"
+            />
             <UButton
               type="submit"
               :loading="loading"
-            >
-              Crear Solicitud
-            </UButton>
+              label="Crear Solicitud"
+            />
           </div>
         </form>
       </div>

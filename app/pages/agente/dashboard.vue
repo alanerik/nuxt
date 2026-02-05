@@ -75,9 +75,7 @@ const properties = ref([
             </UButton>
           </UTooltip>
 
-          <UButton icon="i-lucide-plus" size="md" class="rounded-full">
-            Nuevo Cliente
-          </UButton>
+          <UButton icon="i-lucide-plus" label="Nuevo Cliente" />
         </template>
       </UDashboardNavbar>
     </template>
@@ -115,7 +113,7 @@ const properties = ref([
             <template #header>
               <div class="flex items-center justify-between">
                 <h3 class="font-semibold">Próximas Visitas</h3>
-                <UButton variant="ghost" size="sm" to="/agente/calendario">Ver calendario</UButton>
+                <UButton variant="ghost" size="sm" label="Ver calendario" to="/agente/calendario" />
               </div>
             </template>
             <div class="divide-y divide-default">
@@ -138,7 +136,7 @@ const properties = ref([
             <template #header>
               <div class="flex items-center justify-between">
                 <h3 class="font-semibold">Propiedades Destacadas</h3>
-                <UButton variant="ghost" size="sm" to="/agente/propiedades">Ver todas</UButton>
+                <UButton variant="ghost" size="sm" label="Ver todas" to="/agente/propiedades" />
               </div>
             </template>
             <div class="divide-y divide-default">

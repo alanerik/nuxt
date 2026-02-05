@@ -593,15 +593,10 @@ const handleSubmit = async () => {
             </div>
           </section>
 
-          <!-- ==================== BOTÓN ENVIAR ==================== -->
           <div class="pt-6 border-t border-default">
             <div class="flex items-center justify-between">
-              <UButton variant="ghost" icon="i-lucide-arrow-left" to="/admin/propiedades">
-                Cancelar
-              </UButton>
-              <UButton type="submit" size="lg" :loading="saving" :disabled="!isFormValid || saving" icon="i-lucide-save">
-                Guardar Cambios
-              </UButton>
+              <UButton variant="ghost" icon="i-lucide-arrow-left" label="Cancelar" to="/admin/propiedades" />
+              <UButton type="submit" size="lg" label="Guardar Cambios" :loading="saving" :disabled="!isFormValid || saving" icon="i-lucide-save" />
             </div>
           </div>
 

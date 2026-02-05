@@ -198,7 +198,7 @@ const formatPrice = (value: number, curr: string = 'ARS') => {
             <UIcon name="i-lucide-file-x" class="size-16 mx-auto mb-4 text-muted" />
             <h3 class="text-lg font-semibold mb-2">No hay contratos activos</h3>
             <p class="text-muted mb-4">Necesitás tener al menos un contrato activo para crear pagos.</p>
-            <UButton to="/admin/contratos">Ver Contratos</UButton>
+            <UButton label="Ver Contratos" to="/admin/contratos" />
           </div>
 
           <form v-else class="space-y-6" @submit.prevent="handleSubmit">
@@ -339,18 +339,16 @@ const formatPrice = (value: number, curr: string = 'ARS') => {
             <!-- Acciones -->
             <div class="flex justify-end gap-3 pt-4 border-t border-default">
               <UButton 
-                variant="ghost" 
+                variant="ghost"
+                label="Cancelar"
                 @click="router.push('/admin/pagos')"
-              >
-                Cancelar
-              </UButton>
+              />
               <UButton 
                 type="submit"
+                label="Crear Pago"
                 :loading="loading"
                 :disabled="!isValid"
-              >
-                Crear Pago
-              </UButton>
+              />
             </div>
           </form>
         </UCard>

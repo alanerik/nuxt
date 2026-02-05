@@ -202,7 +202,7 @@ const handleStatusChange = async (request: MaintenanceRequest, newStatus: string
             <div v-if="!loading && requests.length === 0" class="text-center py-12">
                 <UIcon name="i-lucide-wrench" class="size-16 mx-auto mb-4 text-muted" />
                 <h3 class="text-lg font-semibold mb-2">No hay solicitudes de mantenimiento</h3>
-                <UButton to="/admin/mantenimiento/nuevo">Nueva Solicitud</UButton>
+                <UButton label="Nueva Solicitud" to="/admin/mantenimiento/nuevo" />
             </div>
         </UCard>
       </div>

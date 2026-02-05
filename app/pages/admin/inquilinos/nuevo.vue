@@ -85,10 +85,9 @@ const handleSubmit = async () => {
             color="neutral"
             variant="ghost"
             icon="i-lucide-arrow-left"
+            label="Volver"
             @click="router.push('/admin/inquilinos')"
-          >
-            Volver
-          </UButton>
+          />
         </template>
 
         <template #title>
@@ -209,17 +208,15 @@ const handleSubmit = async () => {
               <UButton
                 color="neutral"
                 variant="ghost"
+                label="Cancelar"
                 @click="router.push('/admin/inquilinos')"
-              >
-                Cancelar
-              </UButton>
+              />
               <UButton
                 type="submit"
+                label="Guardar Inquilino"
                 :loading="loading"
                 icon="i-lucide-save"
-              >
-                Guardar Inquilino
-              </UButton>
+              />
             </div>
           </form>
         </UCard>

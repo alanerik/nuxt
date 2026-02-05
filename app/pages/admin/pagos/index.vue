@@ -236,11 +236,10 @@ const handleCancelPayment = async (payment: Payment) => {
           </UTooltip>
 
           <UButton 
-            icon="i-lucide-plus" 
+            icon="i-lucide-plus"
+            label="Nuevo Pago"
             to="/admin/pagos/nuevo"
-          >
-            Nuevo Pago
-          </UButton>
+          />
         </template>
       </UDashboardNavbar>
     </template>
@@ -516,12 +515,8 @@ const handleCancelPayment = async (payment: Payment) => {
         </div>
 
         <div class="flex justify-end gap-2 mt-6">
-          <UButton variant="ghost" @click="showPaymentModal = false">
-            Cancelar
-          </UButton>
-          <UButton color="success" @click="handleRegisterPayment">
-            Confirmar Pago
-          </UButton>
+          <UButton variant="ghost" label="Cancelar" @click="showPaymentModal = false" />
+          <UButton color="success" label="Confirmar Pago" @click="handleRegisterPayment" />
         </div>
       </div>
     </template>

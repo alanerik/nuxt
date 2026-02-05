@@ -151,11 +151,10 @@ const handleDeactivate = async () => {
           </UTooltip>
 
           <UButton 
-            icon="i-lucide-plus" 
+            icon="i-lucide-plus"
+            label="Nuevo Inquilino"
             to="/admin/inquilinos/nuevo"
-          >
-            Nuevo Inquilino
-          </UButton>
+          />
         </template>
       </UDashboardNavbar>
     </template>
@@ -335,7 +334,7 @@ const handleDeactivate = async () => {
             <UIcon name="i-lucide-users" class="size-16 mx-auto mb-4 text-muted" />
             <h3 class="text-lg font-semibold mb-2">No hay inquilinos</h3>
             <p class="text-muted mb-4">No se encontraron inquilinos con los filtros seleccionados.</p>
-            <UButton to="/admin/inquilinos/nuevo">Nuevo Inquilino</UButton>
+            <UButton label="Nuevo Inquilino" to="/admin/inquilinos/nuevo" />
           </div>
         </UCard>
       </div>
@@ -363,12 +362,8 @@ const handleDeactivate = async () => {
         </p>
 
         <div class="flex justify-end gap-2">
-          <UButton variant="ghost" @click="confirmDeactivate = false">
-            Cancelar
-          </UButton>
-          <UButton color="error" @click="handleDeactivate">
-            Desactivar
-          </UButton>
+          <UButton variant="ghost" label="Cancelar" @click="confirmDeactivate = false" />
+          <UButton color="error" label="Desactivar" @click="handleDeactivate" />
         </div>
       </div>
     </template>

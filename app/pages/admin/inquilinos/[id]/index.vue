@@ -154,10 +154,9 @@ const MAINTENANCE_STATUS_COLORS: Record<string, string> = {
             color="neutral"
             variant="ghost"
             icon="i-lucide-arrow-left"
+            label="Volver"
             @click="router.push('/admin/inquilinos')"
-          >
-            Volver
-          </UButton>
+          />
         </template>
 
         <template #title>
@@ -169,10 +168,9 @@ const MAINTENANCE_STATUS_COLORS: Record<string, string> = {
           <UButton 
             v-if="tenant"
             icon="i-lucide-pencil" 
+            label="Editar"
             :to="`/admin/inquilinos/${tenantId}/editar`"
-          >
-            Editar
-          </UButton>
+          />
         </template>
       </UDashboardNavbar>
     </template>

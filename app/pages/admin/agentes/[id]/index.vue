@@ -152,10 +152,9 @@ const handleVerify = async () => {
             color="neutral"
             variant="ghost"
             icon="i-lucide-arrow-left"
+            label="Volver"
             @click="router.push('/admin/agentes')"
-          >
-            Volver
-          </UButton>
+          />
         </template>
 
         <template #title>
@@ -169,17 +168,15 @@ const handleVerify = async () => {
             :color="agent.is_verified ? 'warning' : 'success'"
             variant="soft"
             :icon="agent.is_verified ? 'i-lucide-shield-off' : 'i-lucide-shield-check'"
+            :label="agent.is_verified ? 'Quitar verificación' : 'Verificar'"
             @click="handleVerify"
-          >
-            {{ agent.is_verified ? 'Quitar verificación' : 'Verificar' }}
-          </UButton>
+          />
           <UButton 
             v-if="agent"
             icon="i-lucide-pencil" 
+            label="Editar"
             :to="`/admin/agentes/${agentId}/editar`"
-          >
-            Editar
-          </UButton>
+          />
         </template>
       </UDashboardNavbar>
     </template>

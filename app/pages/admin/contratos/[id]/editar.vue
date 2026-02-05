@@ -387,18 +387,16 @@ const formatPrice = (value: number, currency: string = 'ARS') => {
           <!-- Acciones -->
           <div class="flex justify-end gap-3">
             <UButton 
-              variant="ghost" 
+              variant="ghost"
+              label="Cancelar"
               @click="router.push(`/admin/contratos/${contract.id}`)"
-            >
-              Cancelar
-            </UButton>
+            />
             <UButton 
               type="submit"
+              label="Guardar Cambios"
               :loading="loading"
               :disabled="!isValid"
-            >
-              Guardar Cambios
-            </UButton>
+            />
           </div>
         </form>
       </div>

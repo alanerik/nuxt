@@ -101,10 +101,9 @@ const handleSubmit = async () => {
             color="neutral"
             variant="ghost"
             icon="i-lucide-arrow-left"
+            label="Volver"
             @click="router.push('/admin/agentes')"
-          >
-            Volver
-          </UButton>
+          />
         </template>
 
         <template #title>
@@ -243,17 +242,15 @@ const handleSubmit = async () => {
               <UButton
                 color="neutral"
                 variant="ghost"
+                label="Cancelar"
                 @click="router.push('/admin/agentes')"
-              >
-                Cancelar
-              </UButton>
+              />
               <UButton
                 type="submit"
+                label="Guardar Agente"
                 :loading="loading"
                 icon="i-lucide-save"
-              >
-                Guardar Agente
-              </UButton>
+              />
             </div>
           </form>
         </UCard>

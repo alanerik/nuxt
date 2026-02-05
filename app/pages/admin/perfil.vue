@@ -93,20 +93,18 @@ const handleSave = async () => {
               <div class="flex gap-2">
                 <UButton
                   type="submit"
+                  label="Guardar Cambios"
                   :loading="saving"
                   :disabled="saving"
-                >
-                  Guardar Cambios
-                </UButton>
+                />
 
                 <UButton
                   color="neutral"
                   variant="ghost"
+                  label="Cancelar"
                   :disabled="saving"
                   @click="form.full_name = user?.user_metadata?.full_name || ''"
-                >
-                  Cancelar
-                </UButton>
+                />
               </div>
             </UForm>
           </UCard>

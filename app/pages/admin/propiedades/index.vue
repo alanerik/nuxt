@@ -362,7 +362,7 @@ const stats = computed(() => ({
           <div v-if="!loading && properties.length === 0" class="text-center py-12">
             <UIcon name="i-lucide-building-2" class="size-16 mx-auto mb-4 text-muted" />
             <h3 class="text-lg font-semibold mb-2">No hay propiedades</h3>
-            <UButton to="/admin/propiedades/nueva">Nueva Propiedad</UButton>
+            <UButton label="Nueva Propiedad" to="/admin/propiedades/nueva" />
           </div>
         </UCard>
       </div>
@@ -388,12 +388,8 @@ const stats = computed(() => ({
         </p>
 
         <div class="flex justify-end gap-2">
-          <UButton variant="ghost" @click="showDeleteModal = false">
-            Cancelar
-          </UButton>
-          <UButton color="error" @click="handleDelete">
-            Eliminar
-          </UButton>
+          <UButton variant="ghost" label="Cancelar" @click="showDeleteModal = false" />
+          <UButton color="error" label="Eliminar" @click="handleDelete" />
         </div>
       </div>
     </template>

@@ -494,17 +494,15 @@ const formatPrice = (value: number, currency: string = 'ARS') => {
           <div class="flex justify-end gap-3">
             <UButton 
               variant="ghost" 
+              label="Cancelar"
               @click="router.push('/admin/contratos')"
-            >
-              Cancelar
-            </UButton>
+            />
             <UButton 
               type="submit"
+              label="Crear Contrato"
               :loading="loading"
               :disabled="!isValid"
-            >
-              Crear Contrato
-            </UButton>
+            />
           </div>
         </form>
       </div>

@@ -34,7 +34,7 @@ onMounted(() => {
             </UButton>
           </UTooltip>
 
-          <UButton icon="i-lucide-plus" size="md" class="rounded-full" to="/admin/propiedades/nueva">
+          <UButton icon="i-lucide-plus" size="md" to="/admin/propiedades/nueva">
             Nueva Propiedad
           </UButton>
         </template>
@@ -113,7 +113,7 @@ onMounted(() => {
             <template #header>
               <div class="flex items-center justify-between">
                 <h3 class="font-semibold">Actividad Reciente</h3>
-                <UButton variant="ghost" size="sm" to="/admin/actividad">Ver todo</UButton>
+                <UButton variant="ghost" size="sm" label="Ver todo" to="/admin/actividad" />
               </div>
             </template>
 

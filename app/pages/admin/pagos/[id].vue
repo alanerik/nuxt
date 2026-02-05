@@ -198,10 +198,9 @@ const handleRevertPayment = async () => {
               color="error"
               variant="ghost"
               icon="i-lucide-x"
+              label="Cancelar"
               @click="handleCancelPayment"
-            >
-              Cancelar
-            </UButton>
+            />
           </template>
         </template>
       </UDashboardNavbar>
@@ -446,12 +445,8 @@ const handleRevertPayment = async () => {
         </div>
 
         <div class="flex justify-end gap-2 mt-6">
-          <UButton variant="ghost" @click="showPaymentModal = false">
-            Cancelar
-          </UButton>
-          <UButton color="success" @click="handleRegisterPayment">
-            Confirmar Pago
-          </UButton>
+          <UButton variant="ghost" label="Cancelar" @click="showPaymentModal = false" />
+          <UButton color="success" label="Confirmar Pago" @click="handleRegisterPayment" />
         </div>
       </div>
     </template>

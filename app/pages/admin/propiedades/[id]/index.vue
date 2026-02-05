@@ -38,9 +38,7 @@ const formatPrice = (price: number, currency: string) => {
   <div class="min-h-screen bg-default-50">
     <header class="sticky top-0 z-50 border-b border-default bg-background/95 backdrop-blur">
       <div class="container mx-auto px-4 py-4 flex items-center gap-4">
-        <UButton variant="ghost" to="/admin/propiedades" icon="i-lucide-arrow-left">
-          Volver
-        </UButton>
+        <UButton variant="ghost" icon="i-lucide-arrow-left" label="Volver" to="/admin/propiedades" />
         <h1 v-if="property" class="text-xl font-semibold truncate">{{ property.title }}</h1>
       </div>
     </header>
@@ -145,9 +143,7 @@ const formatPrice = (price: number, currency: string) => {
                   </div>
                 </div>
 
-                <UButton block size="xl" color="primary" :to="`/admin/propiedades/${property.id}/editar`" icon="i-lucide-pencil">
-                  Editar Propiedad
-                </UButton>
+                <UButton block size="xl" color="primary" icon="i-lucide-pencil" label="Editar Propiedad" :to="`/admin/propiedades/${property.id}/editar`" />
               </div>
             </UCard>
           </div>

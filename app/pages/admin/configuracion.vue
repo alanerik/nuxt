@@ -217,11 +217,10 @@ const handlePasswordChange = async () => {
                 <UButton
                   color="neutral"
                   variant="ghost"
+                  label="Cancelar"
                   :disabled="changingPassword"
                   @click="passwordForm = { new_password: '', confirm_password: '' }"
-                >
-                  Cancelar
-                </UButton>
+                />
               </div>
             </UForm>
           </UCard>

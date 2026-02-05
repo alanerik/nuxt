@@ -173,11 +173,10 @@ const handleCancel = async (contract: Contract) => {
           </UTooltip>
 
           <UButton 
-            icon="i-lucide-plus" 
+            icon="i-lucide-plus"
+            label="Nuevo Contrato"
             to="/admin/contratos/nuevo"
-          >
-            Nuevo Contrato
-          </UButton>
+          />
         </template>
       </UDashboardNavbar>
     </template>
@@ -380,7 +379,7 @@ const handleCancel = async (contract: Contract) => {
             <UIcon name="i-lucide-file-text" class="size-16 mx-auto mb-4 text-muted" />
             <h3 class="text-lg font-semibold mb-2">No hay contratos</h3>
             <p class="text-muted mb-4">No se encontraron contratos con los filtros seleccionados.</p>
-            <UButton to="/admin/contratos/nuevo">Nuevo Contrato</UButton>
+            <UButton label="Nuevo Contrato" to="/admin/contratos/nuevo" />
           </div>
         </UCard>
       </div>

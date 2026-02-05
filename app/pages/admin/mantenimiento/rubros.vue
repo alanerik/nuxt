@@ -137,9 +137,8 @@ const columns = [
             icon="i-lucide-arrow-left"
             variant="ghost"
             color="neutral"
-          >
-            Volver
-          </UButton>
+            label="Volver"
+          />
           <UButton 
             label="Nuevo Rubro" 
             icon="i-lucide-plus" 
@@ -196,7 +195,7 @@ const columns = [
           <div v-if="!loading && categories.length === 0" class="text-center py-12">
             <UIcon name="i-lucide-folder" class="size-16 mx-auto mb-4 text-muted" />
             <h3 class="text-lg font-semibold mb-2">No hay rubros</h3>
-            <UButton @click="openCreateModal">Crear Rubro</UButton>
+            <UButton label="Crear Rubro" @click="openCreateModal" />
           </div>
         </UCard>
 
@@ -253,8 +252,8 @@ const columns = [
 
           <template #footer>
             <div class="flex justify-end gap-2">
-              <UButton color="neutral" variant="ghost" @click="isModalOpen = false">Cancelar</UButton>
-              <UButton color="primary" @click="handleSave" :disabled="!formData.name">Guardar</UButton>
+              <UButton color="neutral" variant="ghost" label="Cancelar" @click="isModalOpen = false" />
+              <UButton color="primary" label="Guardar" @click="handleSave" :disabled="!formData.name" />
             </div>
           </template>
           </UCard>
