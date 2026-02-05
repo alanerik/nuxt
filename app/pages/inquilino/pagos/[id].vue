@@ -236,7 +236,7 @@ const getDaysUntilDue = (dueDate: string) => {
               </div>
 
               <p class="text-xs text-muted text-center">
-                Una vez realizado el pago, el mismo será registrado y podrás verlo reflejado aquí.
+                Una vez que realices el pago por los medios indicados, un administrador confirmará la recepción y lo verás reflejado en el sistema.
               </p>
             </div>
           </UCard>
