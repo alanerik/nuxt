@@ -110,6 +110,12 @@ const handleStatusChange = async (request: MaintenanceRequest, newStatus: string
 
         <template #right>
            <UButton 
+             to="/admin/mantenimiento/rubros" 
+             icon="i-lucide-list" 
+             color="gray"
+             label="Rubros" 
+           />
+           <UButton 
              to="/admin/mantenimiento/nuevo" 
              icon="i-lucide-plus" 
              label="Nueva Solicitud" 
