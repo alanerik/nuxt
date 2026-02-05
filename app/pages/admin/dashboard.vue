@@ -113,7 +113,7 @@ onMounted(() => {
             <template #header>
               <div class="flex items-center justify-between">
                 <h3 class="font-semibold">Actividad Reciente</h3>
-                <UButton variant="ghost" size="sm">Ver todo</UButton>
+                <UButton variant="ghost" size="sm" to="/admin/actividad">Ver todo</UButton>
               </div>
             </template>
 
