@@ -18,6 +18,10 @@ export type MaintenanceCategory = {
     id: string
     name: string
     description: string | null
+    contact_name: string | null
+    contact_last_name: string | null
+    contact_phone: string | null
+    contact_notes: string | null
     is_active: boolean
 }
 

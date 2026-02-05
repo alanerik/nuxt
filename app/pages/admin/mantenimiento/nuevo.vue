@@ -137,7 +137,7 @@ const priorityOptions = [
     </template>
 
     <template #body>
-      <div class="p-6 space-y-6 max-w-2xl">
+      <div class="p-6 space-y-6 max-w-lg mx-auto">
         <form @submit.prevent="handleSubmit" class="space-y-6">
           <!-- Propiedad -->
           <UCard>

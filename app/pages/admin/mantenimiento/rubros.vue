@@ -14,7 +14,11 @@ const isModalOpen = ref(false)
 const editingCategory = ref<MaintenanceCategory | null>(null)
 const formData = ref({
   name: '',
-  description: ''
+  description: '',
+  contact_name: '',
+  contact_last_name: '',
+  contact_phone: '',
+  contact_notes: ''
 })
 
 // Load data
@@ -25,7 +29,14 @@ onMounted(() => {
 // Actions
 const openCreateModal = () => {
   editingCategory.value = null
-  formData.value = { name: '', description: '' }
+  formData.value = { 
+    name: '', 
+    description: '',
+    contact_name: '',
+    contact_last_name: '',
+    contact_phone: '',
+    contact_notes: ''
+  }
   isModalOpen.value = true
 }
 
@@ -33,7 +44,11 @@ const openEditModal = (category: MaintenanceCategory) => {
   editingCategory.value = category
   formData.value = { 
     name: category.name, 
-    description: category.description || '' 
+    description: category.description || '',
+    contact_name: category.contact_name || '',
+    contact_last_name: category.contact_last_name || '',
+    contact_phone: category.contact_phone || '',
+    contact_notes: category.contact_notes || ''
   }
   isModalOpen.value = true
 }
@@ -47,6 +62,10 @@ const handleSave = async () => {
         .update({ 
           name: formData.value.name, 
           description: formData.value.description,
+          contact_name: formData.value.contact_name || null,
+          contact_last_name: formData.value.contact_last_name || null,
+          contact_phone: formData.value.contact_phone || null,
+          contact_notes: formData.value.contact_notes || null,
           updated_at: new Date().toISOString()
         })
         .eq('id', editingCategory.value.id)
@@ -59,7 +78,11 @@ const handleSave = async () => {
         .from('maintenance_categories')
         .insert({ 
           name: formData.value.name, 
-          description: formData.value.description 
+          description: formData.value.description,
+          contact_name: formData.value.contact_name || null,
+          contact_last_name: formData.value.contact_last_name || null,
+          contact_phone: formData.value.contact_phone || null,
+          contact_notes: formData.value.contact_notes || null
         })
 
       if (error) throw error
@@ -130,13 +153,27 @@ const columns = [
       <div class="p-6 space-y-6">
         <UCard :ui="{ body: { padding: 'p-0 sm:p-0' } }">
           <UTable :columns="columns" :rows="categories" :loading="loading">
-            <template #status-data="{ row }">
+            <template #description-cell="{ row }">
+              <div class="text-sm">
+                <p class="text-muted">{{ row.description }}</p>
+                <div v-if="row.contact_name || row.contact_phone" class="mt-2 pt-2 border-t space-y-1">
+                  <p v-if="row.contact_name" class="text-xs font-medium">
+                    👤 {{ row.contact_name }} {{ row.contact_last_name }}
+                  </p>
+                  <p v-if="row.contact_phone" class="text-xs">
+                    📞 {{ row.contact_phone }}
+                  </p>
+                </div>
+              </div>
+            </template>
+
+            <template #status-cell="{ row }">
               <UBadge :color="row.is_active ? 'success' : 'neutral'" variant="subtle" size="xs">
                 {{ row.is_active ? 'Activo' : 'Inactivo' }}
               </UBadge>
             </template>
 
-            <template #actions-data="{ row }">
+            <template #actions-cell="{ row }">
               <div class="flex justify-end gap-2">
                 <UButton 
                   icon="i-lucide-pencil" 
@@ -163,36 +200,65 @@ const columns = [
           </div>
         </UCard>
 
-        <UModal v-model="isModalOpen">
-          <div class="p-6">
-            <UCard>
-              <template #header>
-                <h3 class="font-semibold text-lg">
-                  {{ editingCategory ? 'Editar Rubro' : 'Nuevo Rubro' }}
-                </h3>
-              </template>
+        <!-- Formulario de Edición/Creación -->
+        <div v-if="isModalOpen" class="max-w-lg mx-auto">
+          <UCard class="border-primary/50">
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="font-semibold text-lg">
+                {{ editingCategory ? 'Editar Rubro' : 'Nuevo Rubro' }}
+              </h3>
+              <UButton color="gray" variant="ghost" icon="i-lucide-x" size="sm" @click="isModalOpen = false" />
+            </div>
+          </template>
 
-              <div class="space-y-4">
+          <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-sm font-medium mb-2 block">Nombre</label>
+                <UInput v-model="formData.name" placeholder="Ej: Plomería" />
+              </div>
+              
+              <div>
+                <label class="text-sm font-medium mb-2 block">Descripción</label>
+                <UInput v-model="formData.description" placeholder="Breve descripción del rubro" />
+              </div>
+            </div>
+
+            <div class="border-t pt-4">
+              <h4 class="text-sm font-semibold mb-4">Información de Contacto (Responsable)</h4>
+              
+              <div class="grid grid-cols-2 gap-3 mb-3">
                 <div>
                   <label class="text-sm font-medium mb-2 block">Nombre</label>
-                  <UInput v-model="formData.name" placeholder="Ej: Plomería" />
+                  <UInput v-model="formData.contact_name" placeholder="Nombre del responsable" />
                 </div>
-                
                 <div>
-                  <label class="text-sm font-medium mb-2 block">Descripción</label>
-                  <UInput v-model="formData.description" placeholder="Breve descripción del rubro" />
+                  <label class="text-sm font-medium mb-2 block">Apellido</label>
+                  <UInput v-model="formData.contact_last_name" placeholder="Apellido" />
                 </div>
               </div>
 
-              <template #footer>
-                <div class="flex justify-end gap-2">
-                  <UButton color="neutral" variant="ghost" @click="isModalOpen = false">Cancelar</UButton>
-                  <UButton color="primary" @click="handleSave" :disabled="!formData.name">Guardar</UButton>
-                </div>
-              </template>
-            </UCard>
+              <div class="mb-3">
+                <label class="text-sm font-medium mb-2 block">Teléfono</label>
+                <UInput v-model="formData.contact_phone" placeholder="+54 9 11 2345-6789" />
+              </div>
+
+              <div>
+                <label class="text-sm font-medium mb-2 block">Notas</label>
+                <UTextarea v-model="formData.contact_notes" placeholder="Información adicional (horarios, especialidad, etc.)" rows="3" />
+              </div>
+            </div>
           </div>
-        </UModal>
+
+          <template #footer>
+            <div class="flex justify-end gap-2">
+              <UButton color="neutral" variant="ghost" @click="isModalOpen = false">Cancelar</UButton>
+              <UButton color="primary" @click="handleSave" :disabled="!formData.name">Guardar</UButton>
+            </div>
+          </template>
+          </UCard>
+        </div>
       </div>
     </template>
   </UDashboardPanel>
