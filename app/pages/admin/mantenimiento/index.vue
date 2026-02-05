@@ -19,7 +19,6 @@ const statusOptions = [
 // Computed filtered requests
 const filteredRequests = computed(() => {
   let result = requests.value
-  console.log('Filtered requests computed - Total requests:', requests.value.length)
 
   // Filtrar por búsqueda
   if (searchQuery.value) {
@@ -31,12 +30,10 @@ const filteredRequests = computed(() => {
     )
   }
 
-  console.log('After search filter:', result.length)
   return result
 })
 
 onMounted(() => {
-  console.log('Mantenimiento page mounted')
   loadData()
   
   // Recargar datos cada 30 segundos
@@ -49,7 +46,6 @@ const loadData = () => {
     if (statusFilter.value !== 'all') {
         filters.status = statusFilter.value
     }
-    console.log('Loading maintenance requests with filters:', filters)
     fetchRequests(filters)
 }
 

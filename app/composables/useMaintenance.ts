@@ -76,11 +76,9 @@ export const useMaintenance = () => {
             const { data, error: err } = await query
             
             if (err) {
-                console.error('Error fetching requests - Details:', err)
                 throw err
             }
 
-            console.log('Fetched maintenance requests:', data)
             requests.value = data as MaintenanceRequest[]
         } catch (e) {
             error.value = e as Error
@@ -172,11 +170,9 @@ export const useMaintenance = () => {
                 .single()
 
             if (err) {
-                console.error('Insert error details:', err)
                 throw new Error(err.message || 'Error al crear la solicitud')
             }
             
-            console.log('Created maintenance request:', data)
             return data
         } catch (e) {
             error.value = e as Error
