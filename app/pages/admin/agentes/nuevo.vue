@@ -73,7 +73,7 @@ const handleSubmit = async () => {
     })
 
     router.push('/admin/agentes')
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     console.error('Error creating agent:', error)
     
     let errorMessage = 'No se pudo crear el agente'

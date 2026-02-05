@@ -100,7 +100,7 @@ const handleSubmit = async () => {
     })
 
     router.push(`/admin/contratos/${contract.value.id}`)
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     toast.add({
       title: 'Error',
       description: error.message || 'No se pudo actualizar el contrato',

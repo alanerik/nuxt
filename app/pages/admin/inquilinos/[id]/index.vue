@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TenantWithDetails } from '~/types/tenant.types'
+import type { PaymentRow } from '~/types/payment.types'
 import {
   TENANT_CONTRACT_STATUS,
   TENANT_CONTRACT_COLORS,
@@ -26,7 +27,7 @@ const tenantId = computed(() => route.params.id as string)
 
 // Estado
 const tenant = ref<TenantWithDetails | null>(null)
-const payments = ref<any[]>([])
+const payments = ref<PaymentRow[]>([])
 const maintenanceRequests = ref<any[]>([])
 const loading = ref(true)
 const activeTab = ref('contracts')

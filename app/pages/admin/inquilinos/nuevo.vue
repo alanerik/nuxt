@@ -57,7 +57,7 @@ const handleSubmit = async () => {
     })
 
     router.push('/admin/inquilinos')
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     console.error('Error creating tenant:', error)
     
     let errorMessage = 'No se pudo crear el inquilino'

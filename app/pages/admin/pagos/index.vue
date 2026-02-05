@@ -88,7 +88,7 @@ const monthOptions = [
 const loadData = async () => {
   loading.value = true
   try {
-    const filters: any = {}
+    const filters: { search?: string; status?: string; period_month?: number; period_year?: number } = {}
 
     if (searchQuery.value) {
       filters.search = searchQuery.value

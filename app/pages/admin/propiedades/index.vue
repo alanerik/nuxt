@@ -43,7 +43,7 @@ const columns = [
 const loadProperties = async () => {
   loading.value = true
   try {
-    const filters: any = {}
+    const filters: { search?: string; status?: string; property_type?: string } = {}
     
     if (searchQuery.value) {
       filters.search = searchQuery.value

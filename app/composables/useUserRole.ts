@@ -54,7 +54,7 @@ export const useUserRole = () => {
                     .from('profiles')
                     .select('role')
                     .eq('id', targetId)
-                    .single() as any
+                    .single()
 
                 if (profileError) throw profileError
 
@@ -64,7 +64,7 @@ export const useUserRole = () => {
 
                 role.value = profile.role
                 return profile.role
-            } catch (err: any) {
+            } catch (err: Error | unknown) {
                 console.error('Error fetching user role:', err)
                 error.value = err
                 role.value = null

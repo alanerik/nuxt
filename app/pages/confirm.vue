@@ -218,7 +218,7 @@ const resendConfirmationEmail = async () => {
       description: 'Revisa tu bandeja de entrada',
       color: 'success'
     })
-  } catch (err: any) {
+  } catch (err: Error | unknown) {
     console.error('Error reenviando email:', err)
     
     toast.add({
@@ -232,8 +232,8 @@ const resendConfirmationEmail = async () => {
 }
 
 // Determinar tipo de error y mensaje apropiado
-const categorizeError = (error: any): { type: ErrorType; title: string; message: string } => {
-  const errorMsg = error?.message || error?.toString() || ''
+const categorizeError = (error: Error | unknown): { type: ErrorType; title: string; message: string } => {
+  const errorMsg = error instanceof Error ? error.message : String(error) || ''
 
   // Token expirado
   if (errorMsg.includes('expired') || errorMsg.includes('invalid') || errorMsg.includes('token')) {
@@ -317,7 +317,7 @@ const handleRedirect = async () => {
 
     if (profileError) throw profileError
 
-    const userRole = (profile as any)?.role
+    const userRole = (profile as Record<string, unknown>)?.role
 
     if (!userRole) {
       throw new Error('No se encontró el rol del usuario')

@@ -261,7 +261,7 @@ const handleSubmit = async () => {
     })
     
     router.push('/admin/propiedades')
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     console.error('Error updating property:', error)
     toast.add({
       title: 'Error',
@@ -333,7 +333,7 @@ const handleSubmit = async () => {
                   v-for="op in operationTypes"
                   :key="op.value"
                   type="button"
-                  @click="form.operation_type = op.value as any"
+                  @click="form.operation_type = op.value"
                   class="p-4 rounded-xl border-2 transition-all text-center"
                   :class="form.operation_type === op.value 
                     ? 'border-primary bg-primary/10 text-primary' 
@@ -418,7 +418,7 @@ const handleSubmit = async () => {
                   v-for="pt in propertyTypes"
                   :key="pt.value"
                   type="button"
-                  @click="form.property_type = pt.value as any"
+                  @click="form.property_type = pt.value"
                   class="p-4 rounded-xl border-2 transition-all text-center"
                   :class="form.property_type === pt.value 
                     ? 'border-primary bg-primary/10 text-primary' 
@@ -437,7 +437,7 @@ const handleSubmit = async () => {
                   v-for="st in propertyStatuses"
                   :key="st.value"
                   type="button"
-                  @click="form.status = st.value as any"
+                  @click="form.status = st.value"
                   class="p-3 rounded-xl border-2 transition-all text-center"
                   :class="form.status === st.value 
                     ? 'border-primary bg-primary/10 text-primary' 

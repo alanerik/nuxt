@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { MaintenanceCategory } from '~/composables/useMaintenance'
+import type { PropertyRow } from '~/types/property.types'
 
 definePageMeta({
   layout: 'inquilino'
@@ -13,7 +14,7 @@ const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 
 // State
-const myProperties = ref<any[]>([])
+const myProperties = ref<PropertyRow[]>([])
 const loadingProps = ref(false)
 
 const form = ref({
@@ -51,7 +52,7 @@ const fetchMyProperties = async () => {
             .eq('status', 'activo')
         
         if (data) {
-            myProperties.value = data.map((c: any) => c.property)
+            myProperties.value = data.map((c) => c.property)
             if (myProperties.value.length === 1) {
                 form.value.property_id = myProperties.value[0].id
             }

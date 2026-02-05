@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { ContractInsert } from '~/types/contract.types'
 import { CURRENCY_OPTIONS, ADJUSTMENT_INDEX_OPTIONS } from '~/types/contract.types'
+import type { PropertyRow } from '~/types/property.types'
+import type { Tenant } from '~/types/tenant.types'
+import type { Agent } from '~/types/agent.types'
 import { CalendarDate, today, getLocalTimeZone } from '@internationalized/date'
 
 definePageMeta({
@@ -18,9 +21,9 @@ const toast = useToast()
 
 // Estado
 const loading = ref(false)
-const properties = ref<any[]>([])
-const tenants = ref<any[]>([])
-const agents = ref<any[]>([])
+const properties = ref<PropertyRow[]>([])
+const tenants = ref<Tenant[]>([])
+const agents = ref<Agent[]>([])
 const loadingData = ref(true)
 
 // Refs para las fechas (UInputDate usa CalendarDate)
@@ -157,7 +160,7 @@ const handleSubmit = async () => {
     })
 
     router.push('/admin/contratos')
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     toast.add({
       title: 'Error',
       description: error.message || 'No se pudo crear el contrato',

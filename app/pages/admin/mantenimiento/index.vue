@@ -42,7 +42,7 @@ onMounted(() => {
 })
 
 const loadData = () => {
-    const filters: any = {}
+    const filters: { status?: string } = {}
     if (statusFilter.value !== 'all') {
         filters.status = statusFilter.value
     }
@@ -89,7 +89,7 @@ const columns = [
   { key: 'actions', label: '', id: 'actions' }
 ]
 
-const handleStatusChange = async (request: any, newStatus: string) => {
+const handleStatusChange = async (request: MaintenanceRequest, newStatus: string) => {
     try {
         await updateRequestStatus(request.id, newStatus)
         useToast().add({ title: 'Estado actualizado', color: 'success' })

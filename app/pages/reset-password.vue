@@ -196,12 +196,13 @@ const handleSubmit = async () => {
       description: 'Revisa tu bandeja de entrada',
       color: 'success'
     })
-  } catch (e: any) {
-    error.value = e.message
+  } catch (e: Error | unknown) {
+    const errorMessage = e instanceof Error ? e.message : 'Error desconocido'
+    error.value = errorMessage
     
     toast.add({
       title: 'Error',
-      description: e.message,
+      description: errorMessage,
       color: 'error'
     })
   } finally {
@@ -225,12 +226,13 @@ const handleResend = async () => {
       description: 'Revisa tu bandeja de entrada',
       color: 'success'
     })
-  } catch (e: any) {
-    error.value = e.message
+  } catch (e: Error | unknown) {
+    const errorMessage = e instanceof Error ? e.message : 'Error desconocido'
+    error.value = errorMessage
     
     toast.add({
       title: 'Error al reenviar',
-      description: e.message,
+      description: errorMessage,
       color: 'error'
     })
   } finally {

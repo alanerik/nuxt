@@ -34,7 +34,7 @@ const handleSave = async () => {
       description: 'Tus datos se guardaron correctamente',
       color: 'success'
     })
-  } catch (err: any) {
+  } catch (err: Error | unknown) {
     toast.add({
       title: 'Error',
       description: err.message || 'No se pudo actualizar el perfil',

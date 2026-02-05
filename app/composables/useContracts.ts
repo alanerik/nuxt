@@ -134,7 +134,7 @@ export const useContracts = () => {
     const formatError = (e: unknown): Error => {
         if (e instanceof Error) return e
         if (typeof e === 'object' && e !== null && 'message' in e) {
-            return new Error((e as any).message)
+            return new Error(String((e as Record<string, unknown>).message))
         }
         return new Error(String(e))
     }

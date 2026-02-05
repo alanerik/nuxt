@@ -33,7 +33,7 @@ const statusOptions = [
 const loadData = async () => {
   loading.value = true
   try {
-    const filters: any = {}
+    const filters: { search?: string; status?: string } = {}
 
     if (statusFilter.value !== 'all') {
       filters.status = statusFilter.value

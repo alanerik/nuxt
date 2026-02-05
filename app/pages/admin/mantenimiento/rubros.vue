@@ -43,7 +43,7 @@ const handleSave = async () => {
     if (editingCategory.value) {
       // Update
       const { error } = await supabase
-        .from('maintenance_categories' as any)
+        .from('maintenance_categories')
         .update({ 
           name: formData.value.name, 
           description: formData.value.description,
@@ -56,7 +56,7 @@ const handleSave = async () => {
     } else {
       // Create
       const { error } = await supabase
-        .from('maintenance_categories' as any)
+        .from('maintenance_categories')
         .insert({ 
           name: formData.value.name, 
           description: formData.value.description 
@@ -79,7 +79,7 @@ const handleDelete = async (id: string) => {
 
   try {
     const { error } = await supabase
-      .from('maintenance_categories' as any)
+      .from('maintenance_categories')
       .delete()
       .eq('id', id)
 

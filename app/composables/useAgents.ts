@@ -46,7 +46,7 @@ export function useAgents() {
             }
 
             // Obtener user_ids de los agentes
-            const userIds = (agentsData || []).map((a: any) => a.user_id)
+            const userIds = (agentsData || []).map((a) => a.user_id)
 
             // Obtener perfiles por separado
             let profilesMap: Record<string, any> = {}
@@ -56,14 +56,14 @@ export function useAgents() {
                     .select('id, email, full_name, phone, avatar_url, is_active')
                     .in('id', userIds)
 
-                profilesMap = (profiles || []).reduce((acc: any, p: any) => {
+                profilesMap = (profiles || []).reduce((acc, p) => {
                     acc[p.id] = p
                     return acc
                 }, {})
             }
 
             // Combinar agentes con perfiles
-            let agents: Agent[] = (agentsData || []).map((agent: any) => ({
+            let agents: Agent[] = (agentsData || []).map((agent) => ({
                 ...agent,
                 profile: profilesMap[agent.user_id] || null
             }))
@@ -118,7 +118,7 @@ export function useAgents() {
             const { data: profile } = await supabase
                 .from('profiles')
                 .select('id, email, full_name, phone, avatar_url, address, dni, is_active')
-                .eq('id', (agent as any).user_id)
+                .eq('id', agent.user_id)
                 .single()
 
             // Contar propiedades asignadas
@@ -141,10 +141,10 @@ export function useAgents() {
                 .eq('agent_id', id)
                 .eq('status', 'pendiente')
 
-            const totalPending = (pendingCommissions || []).reduce((sum: number, c: any) => sum + (c.amount || 0), 0)
+            const totalPending = (pendingCommissions || []).reduce((sum: number, c) => sum + (c.amount || 0), 0)
 
             return {
-                ...(agent as any),
+                ...agent,
                 profile: profile || null,
                 properties_count: propertiesCount || 0,
                 active_contracts_count: contractsCount || 0,
@@ -177,8 +177,8 @@ export function useAgents() {
                 .from('agents')
                 .select('total_sales, total_rentals')
 
-            const totalSales = (totals || []).reduce((sum: number, a: any) => sum + (a.total_sales || 0), 0)
-            const totalRentals = (totals || []).reduce((sum: number, a: any) => sum + (a.total_rentals || 0), 0)
+            const totalSales = (totals || []).reduce((sum: number, a) => sum + (a.total_sales || 0), 0)
+            const totalRentals = (totals || []).reduce((sum: number, a) => sum + (a.total_rentals || 0), 0)
 
             return {
                 total: total || 0,
@@ -234,7 +234,7 @@ export function useAgents() {
                         full_name: data.full_name,
                         phone: data.phone || null,
                         role: 'agente'
-                    } as any)
+                    })
                     .eq('id', authData.user.id)
 
                 // Crear registro de agente
@@ -246,7 +246,7 @@ export function useAgents() {
                         commission_rate: data.commission_rate || 5,
                         specialization: data.specialization || [],
                         bio: data.bio || null
-                    } as any)
+                    })
 
                 if (agentError) throw agentError
             }
@@ -274,7 +274,7 @@ export function useAgents() {
                 .update({
                     ...data,
                     updated_at: new Date().toISOString()
-                } as any)
+                })
                 .eq('id', id)
 
             if (error) throw error
@@ -296,7 +296,7 @@ export function useAgents() {
                 .update({
                     is_verified: verified,
                     updated_at: new Date().toISOString()
-                } as any)
+                })
                 .eq('id', id)
 
             if (error) throw error

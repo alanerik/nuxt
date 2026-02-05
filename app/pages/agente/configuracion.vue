@@ -111,7 +111,7 @@ const handlePasswordChange = async () => {
       new_password: '',
       confirm_password: ''
     }
-  } catch (err: any) {
+  } catch (err: Error | unknown) {
     toast.add({
       title: 'Error',
       description: err.message || 'No se pudo cambiar la contraseña',

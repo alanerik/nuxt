@@ -56,7 +56,7 @@ const verifiedOptions = [
 const loadData = async () => {
   loading.value = true
   try {
-    const filters: any = {}
+    const filters: { search?: string; verified?: boolean } = {}
 
     if (searchQuery.value) {
       filters.search = searchQuery.value

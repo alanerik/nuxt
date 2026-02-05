@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { MONTHS_LABELS } from '~/types/payment.types'
+import type { ContractRow } from '~/types/contract.types'
 
 definePageMeta({
   layout: 'admin'
@@ -11,7 +12,7 @@ const toast = useToast()
 
 // Estado
 const loading = ref(false)
-const contracts = ref<any[]>([])
+const contracts = ref<ContractRow[]>([])
 const loadingContracts = ref(true)
 
 // Form data
@@ -134,7 +135,7 @@ const handleSubmit = async () => {
     })
 
     router.push('/admin/pagos')
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     toast.add({
       title: 'Error',
       description: error.message || 'No se pudo crear el pago',

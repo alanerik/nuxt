@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { Database } from '~/types/database.types'
+import type { PropertyRow } from '~/types/property.types'
+import type { Tenant } from '~/types/tenant.types'
 
 definePageMeta({
   layout: 'admin'
@@ -13,8 +15,8 @@ const { fetchTenants } = useTenants()
 
 // Estado
 const loading = ref(false)
-const properties = ref<any[]>([])
-const tenants = ref<any[]>([])
+const properties = ref<PropertyRow[]>([])
+const tenants = ref<Tenant[]>([])
 
 // Form data
 const form = ref({

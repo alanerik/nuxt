@@ -76,7 +76,7 @@ export const useDashboardStats = () => {
           property:properties(address)
         `)
         .order('updated_at', { ascending: false })
-        .limit(5) as any
+        .limit(5)
 
       if (contracts) {
         for (const contract of contracts) {
@@ -108,7 +108,7 @@ export const useDashboardStats = () => {
         .eq('status', 'pagado')
         .not('payment_date', 'is', null)
         .order('payment_date', { ascending: false })
-        .limit(5) as any
+        .limit(5)
 
       if (payments) {
         for (const payment of payments) {
@@ -135,7 +135,7 @@ export const useDashboardStats = () => {
           property:properties(address)
         `)
         .order('created_at', { ascending: false })
-        .limit(5) as any
+        .limit(5)
 
       if (maintenance) {
         for (const request of maintenance) {
@@ -158,7 +158,7 @@ export const useDashboardStats = () => {
         .select('id, full_name, created_at')
         .eq('role', 'inquilino')
         .order('created_at', { ascending: false })
-        .limit(5) as any
+        .limit(5)
 
       if (tenants) {
         for (const tenant of tenants) {

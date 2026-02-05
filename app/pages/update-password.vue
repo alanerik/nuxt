@@ -287,7 +287,7 @@ const handleSubmit = async () => {
       description: 'Ya puedes iniciar sesión con tu nueva contraseña',
       color: 'success'
     })
-  } catch (e: any) {
+  } catch (e: Error | unknown) {
     error.value = e.message
 
     toast.add({

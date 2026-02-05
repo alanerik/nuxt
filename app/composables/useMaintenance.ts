@@ -36,7 +36,7 @@ export const useMaintenance = () => {
     const fetchCategories = async () => {
         try {
             const { data, error: err } = await supabase
-                .from('maintenance_categories' as any) // Cast as any until types are updated
+                .from('maintenance_categories')
                 .select('*')
                 .eq('is_active', true)
                 .order('name')
@@ -51,7 +51,7 @@ export const useMaintenance = () => {
     /**
      * Fetch Maintenance Requests
      */
-    const fetchRequests = async (filters?: { status?: string, property_id?: string, tenant_id?: string }) => {
+    const fetchRequests = async (filters?: { status?: string; property_id?: string; tenant_id?: string }) => {
         loading.value = true
         try {
             let query = supabase
@@ -146,26 +146,23 @@ export const useMaintenance = () => {
 
             const userId = session.user.id
 
-            const insertPayload: any = {
+            const insertPayload = {
                 property_id: payload.property_id,
                 title: payload.title,
                 description: payload.description || '',
                 category: payload.category || null,
-                priority: payload.priority,
+                priority: payload.priority as 'baja' | 'media' | 'alta' | 'urgente',
                 tenant_id: userId,
                 status: 'pendiente',
-                reported_date: new Date().toISOString()
-            }
-
-            if (payload.images?.length) {
-                insertPayload.images = payload.images
+                reported_date: new Date().toISOString(),
+                ...(payload.images?.length && { images: payload.images })
             }
 
             console.log('Creating maintenance request with payload:', insertPayload)
 
             const { data, error: err } = await supabase
                 .from('maintenance_requests')
-                .insert(insertPayload)
+                .insert(insertPayload as never)
                 .select()
                 .single()
 
@@ -186,15 +183,15 @@ export const useMaintenance = () => {
     /**
      * Update Request Status (Admin)
      */
-    const updateRequestStatus = async (id: string, status: string, notes?: string) => {
+    const updateRequestStatus = async (id: string, status: 'pendiente' | 'en_proceso' | 'completado' | 'cancelado', notes?: string) => {
         loading.value = true
         try {
-            const updates: any = { status, updated_at: new Date().toISOString() }
+            const updates: { status: 'pendiente' | 'en_proceso' | 'completado' | 'cancelado'; updated_at: string; notes?: string } = { status, updated_at: new Date().toISOString() }
             if (notes) updates.notes = notes
 
             const { error: err } = await supabase
                 .from('maintenance_requests')
-                .update(updates)
+                .update(updates as never)
                 .eq('id', id)
 
             if (err) throw err
@@ -202,8 +199,11 @@ export const useMaintenance = () => {
             // Refresh list
             const index = requests.value.findIndex(r => r.id === id)
             if (index !== -1) {
-                requests.value[index].status = status as any
-                if (notes) requests.value[index].notes = notes
+                const req = requests.value[index]
+                if (req) {
+                    req.status = status
+                    if (notes) req.notes = notes
+                }
             }
         } catch (e) {
             error.value = e as Error

@@ -44,9 +44,9 @@ export function useTenants() {
             }
 
             // Obtener contratos activos por separado
-            const tenantIds = (data || []).map((t: any) => t.id)
+            const tenantIds = (data || []).map((t) => t.id)
 
-            let contractsData: any[] = []
+            let contractsData: Contracts[] = []
             if (tenantIds.length > 0) {
                 const { data: contracts } = await supabase
                     .from('contracts')
@@ -74,8 +74,8 @@ export function useTenants() {
             }
 
             // Procesar datos para agregar información resumida
-            const tenantsWithDetails: TenantWithDetails[] = (data || []).map((tenant: any) => {
-                const currentContract = contractsData.find((c: any) => c.tenant_id === tenant.id) || null
+            const tenantsWithDetails: TenantWithDetails[] = (data || []).map((tenant) => {
+                const currentContract = contractsData.find((c) => c.tenant_id === tenant.id) || null
 
                 return {
                     ...tenant,
@@ -148,16 +148,16 @@ export function useTenants() {
 
             const paymentsSummary = {
                 total: payments?.length || 0,
-                paid: payments?.filter((p: any) => p.status === 'pagado').length || 0,
-                pending: payments?.filter((p: any) => p.status === 'pendiente').length || 0,
-                overdue: payments?.filter((p: any) => p.status === 'vencido').length || 0
+                paid: payments?.filter((p) => p.status === 'pagado').length || 0,
+                pending: payments?.filter((p) => p.status === 'pendiente').length || 0,
+                overdue: payments?.filter((p) => p.status === 'vencido').length || 0
             }
 
-            const contracts = (tenant as any).contracts || []
-            const currentContract = contracts.find((c: any) => c.status === 'activo') || null
+            const contracts = (tenant as Record<string, unknown>).contracts || []
+            const currentContract = contracts.find((c) => c.status === 'activo') || null
 
             return {
-                ...(tenant as any),
+                ...tenant,
                 contracts,
                 current_contract: currentContract,
                 payments_summary: paymentsSummary
@@ -186,7 +186,7 @@ export function useTenants() {
                 .select('tenant_id')
                 .eq('status', 'activo')
 
-            const uniqueTenantIds = new Set((activeContracts || []).map((c: any) => c.tenant_id))
+            const uniqueTenantIds = new Set((activeContracts || []).map((c) => c.tenant_id))
             const withActiveContract = uniqueTenantIds.size
 
             // Inquilinos con pagos pendientes/vencidos
@@ -195,7 +195,7 @@ export function useTenants() {
                 .select('tenant_id')
                 .in('status', ['pendiente', 'vencido'])
 
-            const tenantsWithPending = new Set((pendingPayments || []).map((p: any) => p.tenant_id))
+            const tenantsWithPending = new Set((pendingPayments || []).map((p) => p.tenant_id))
             const withPendingPayments = tenantsWithPending.size
 
             // Nuevos este mes
@@ -265,7 +265,7 @@ export function useTenants() {
                         dni: data.dni || null,
                         address: data.address || null,
                         role: 'inquilino'
-                    } as any)
+                    })
                     .eq('id', authData.user.id)
 
                 if (updateError) throw updateError
@@ -294,7 +294,7 @@ export function useTenants() {
                 .update({
                     ...data,
                     updated_at: new Date().toISOString()
-                } as any)
+                })
                 .eq('id', id)
                 .eq('role', 'inquilino')
 
@@ -317,7 +317,7 @@ export function useTenants() {
                 .update({
                     is_active: false,
                     updated_at: new Date().toISOString()
-                } as any)
+                })
                 .eq('id', id)
                 .eq('role', 'inquilino')
 

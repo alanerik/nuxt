@@ -57,7 +57,7 @@ const statusOptions = [
 const loadData = async () => {
   loading.value = true
   try {
-    const filters: any = {}
+    const filters: { search?: string; status?: string } = {}
 
     if (searchQuery.value) {
       filters.search = searchQuery.value

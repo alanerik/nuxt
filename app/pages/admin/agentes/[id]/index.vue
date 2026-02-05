@@ -27,8 +27,8 @@ const agentId = computed(() => route.params.id as string)
 
 // Estado
 const agent = ref<AgentWithDetails | null>(null)
-const properties = ref<any[]>([])
-const commissions = ref<any[]>([])
+const properties = ref<(Record<string, unknown>)[]>([])
+const commissions = ref<(Record<string, unknown>)[]>([])
 const loading = ref(true)
 const activeTab = ref('properties')
 

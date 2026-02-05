@@ -56,7 +56,7 @@ export const usePropertyFilters = () => {
         if (query.bedrooms) filters.value.bedrooms = Number(query.bedrooms)
         if (query.bathrooms) filters.value.bathrooms = Number(query.bathrooms)
         if (query.city) filters.value.city = String(query.city)
-        if (query.sort) sort.value.field = query.sort as any
+        if (query.sort) sort.value.field = query.sort as string
         if (query.direction) sort.value.direction = query.direction as 'asc' | 'desc'
         if (query.page) pagination.value.page = Number(query.page)
     }

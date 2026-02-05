@@ -69,7 +69,7 @@ export const useReportStats = () => {
 
             // Group by month
             const grouped = new Map<string, number>()
-            const paymentData = payments as any[] // Explicit cast to avoid type errors
+            const paymentData = (payments || []) as typeof payments
 
             // Generate list of months between start and end
             let current = new Date(startDate)
@@ -116,7 +116,7 @@ export const useReportStats = () => {
                 .eq('status', 'pagado')
                 .gte('payment_date', startOfMonth.toISOString())
 
-            const currentPaymentData = (currentPayments || []) as any[]
+            const currentPaymentData = (currentPayments || []) as typeof currentPayments
             const currentRevenue = currentPaymentData.reduce((sum, p) => sum + (p.amount || 0), 0) || 0
 
             const { data: lastPayments } = await supabase
@@ -126,7 +126,7 @@ export const useReportStats = () => {
                 .gte('payment_date', startOfLastMonth.toISOString())
                 .lte('payment_date', endOfLastMonth.toISOString())
 
-            const lastPaymentData = (lastPayments || []) as any[]
+            const lastPaymentData = (lastPayments || []) as typeof lastPayments
             const lastRevenue = lastPaymentData.reduce((sum, p) => sum + (p.amount || 0), 0) || 0
             const revenueChange = lastRevenue ? ((currentRevenue - lastRevenue) / lastRevenue) * 100 : 0
 
@@ -142,7 +142,7 @@ export const useReportStats = () => {
                 .select('amount')
                 .eq('status', 'pendiente')
 
-            const pendingData = (pending || []) as any[]
+            const pendingData = (pending || []) as typeof pending
             const pendingCount = pendingData.length
             const pendingTotal = pendingData.reduce((sum, p) => sum + (p.amount || 0), 0) || 0
 
@@ -174,10 +174,10 @@ export const useReportStats = () => {
           tenant:profiles(email, full_name)
         `)
                 .order('payment_date', { ascending: false })
-                .limit(limit) as any
+                .limit(limit)
 
             if (data) {
-                recentTransactions.value = data.map((p: any) => ({
+                recentTransactions.value = data.map((p) => ({
                     id: p.id,
                     date: p.payment_date,
                     status: p.status,
