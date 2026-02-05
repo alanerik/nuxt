@@ -295,6 +295,31 @@ export const usePayments = () => {
 
             if (insertError) throw insertError
 
+            // Crear notificación para el inquilino
+            if (data) {
+                try {
+                    const amount = paymentData.amount || 0
+                    const currency = paymentData.currency || 'ARS'
+                    const dueDate = new Date(paymentData.due_date).toLocaleDateString('es-AR')
+
+                    await supabase
+                        .from('notifications')
+                        .insert({
+                            user_id: paymentData.tenant_id,
+                            type: 'payment',
+                            title: 'Nuevo pago creado',
+                            message: `Se ha creado un nuevo pago de ${amount} ${currency} con vencimiento el ${dueDate}`,
+                            entity_type: 'payment',
+                            entity_id: (data as any).id,
+                            is_read: false,
+                            created_at: new Date().toISOString()
+                        } as never)
+                } catch (notifError) {
+                    console.error('Error creating notification:', notifError)
+                    // No fallar el pago si las notificaciones fallan
+                }
+            }
+
             return data as Payment
         } catch (e) {
             const err = e instanceof Error ? e : new Error(String(e))
