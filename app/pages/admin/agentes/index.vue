@@ -225,10 +225,10 @@ const handleVerify = async (agent: Agent) => {
               :columns="columns"
               :data="agents"
               :loading="loading"
-              class="min-w-[900px]"
+              class="min-w-225"
             >
               <template #agent-cell="{ row }">
-                <div class="flex items-center gap-3 min-w-[220px]">
+                <div class="flex items-center gap-3 min-w-55">
                   <div class="w-10 h-10 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0">
                     <img 
                       v-if="row.original.profile?.avatar_url"
@@ -255,14 +255,14 @@ const handleVerify = async (agent: Agent) => {
               </template>
 
               <template #contact-cell="{ row }">
-                <div class="min-w-[180px]">
+                <div class="min-w-45">
                   <p class="text-sm">{{ row.original.profile?.email }}</p>
                   <p class="text-sm text-muted">{{ row.original.profile?.phone || 'Sin teléfono' }}</p>
                 </div>
               </template>
 
               <template #stats-cell="{ row }">
-                <div class="min-w-[120px]">
+                <div class="min-w-30">
                   <div class="flex items-center gap-4">
                     <div class="text-center">
                       <p class="font-semibold">{{ row.original.total_sales }}</p>

@@ -183,7 +183,7 @@ const handleVerify = async () => {
 
     <template #body>
       <!-- Loading -->
-      <div v-if="loading" class="p-6 flex items-center justify-center min-h-[400px]">
+      <div v-if="loading" class="p-6 flex items-center justify-center min-h-100">
         <UIcon name="i-lucide-loader-2" class="size-8 animate-spin text-primary" />
       </div>
 
