@@ -30,10 +30,12 @@ const filteredRequests = computed(() => {
     )
   }
 
+  console.log('🔍 Filtered results:', { total: requests.value.length, filtered: result.length, searchQuery: searchQuery.value })
   return result
 })
 
 onMounted(() => {
+  console.log('📋 Admin Maintenance: Component mounted')
   loadData()
   
   // Recargar datos cada 30 segundos
@@ -42,6 +44,7 @@ onMounted(() => {
 })
 
 const loadData = () => {
+    console.log('🔄 Loading maintenance data, filter:', statusFilter.value)
     const filters: { status?: string } = {}
     if (statusFilter.value !== 'all') {
         filters.status = statusFilter.value
@@ -51,6 +54,16 @@ const loadData = () => {
 
 watch([statusFilter], () => {
     loadData()
+})
+
+// Debug: watch requests and filteredRequests
+watch([requests, filteredRequests, loading], () => {
+    console.log('🔍 STATE CHANGE:', { 
+        requestsCount: requests.value.length, 
+        filteredCount: filteredRequests.value.length,
+        loading: loading.value,
+        firstRequest: requests.value[0]
+    })
 })
 
 const getPriorityColor = (priority: string) => {
@@ -81,12 +94,12 @@ const formatDate = (dateStr: string) => {
 
 // Columns for table view
 const columns = [
-  { key: 'title', label: 'Solicitud', id: 'title' },
-  { key: 'property', label: 'Propiedad', id: 'property' },
-  { key: 'tenant', label: 'Inquilino', id: 'tenant' },
-  { key: 'priority', label: 'Prioridad', id: 'priority' },
-  { key: 'status', label: 'Estado', id: 'status' },
-  { key: 'actions', label: '', id: 'actions' }
+  { key: 'title', label: 'Solicitud', id: 'title', header: 'Solicitud' },
+  { key: 'property', label: 'Propiedad', id: 'property', header: 'Propiedad' },
+  { key: 'tenant', label: 'Inquilino', id: 'tenant', header: 'Inquilino' },
+  { key: 'priority', label: 'Prioridad', id: 'priority', header: 'Prioridad' },
+  { key: 'status', label: 'Estado', id: 'status', header: 'Estado' },
+  { key: 'actions', label: '', id: 'actions', header: '' }
 ]
 
 const handleStatusChange = async (request: MaintenanceRequest, newStatus: string) => {
@@ -150,37 +163,40 @@ const handleStatusChange = async (request: MaintenanceRequest, newStatus: string
 
         <!-- Table -->
         <UCard :ui="{ body: { padding: 'p-0 sm:p-0' } }">
-            <UTable :columns="columns" :rows="requests" :loading="loading">
+            <UTable :columns="columns" :data="filteredRequests as MaintenanceRequest[]" :loading="loading">
                 <template #title-cell="{ row }">
-                   <div>
-                       <p class="font-medium">{{ row.title }}</p>
-                       <p class="text-xs text-muted">{{ row.category || 'Sin categoría' }}</p>
+                   <div class="flex items-center gap-2">
+                       <UIcon name="i-lucide-wrench" class="size-4 text-muted shrink-0" />
+                       <div>
+                           <p class="font-medium">{{ row.original.title }}</p>
+                           <p class="text-xs text-muted">{{ row.original.category || 'Sin categoría' }}</p>
+                       </div>
                    </div>
                 </template>
 
                  <template #property-cell="{ row }">
                    <div>
-                       <p class="text-sm font-medium">{{ row.property?.title || 'Sin propiedad' }}</p>
-                       <p class="text-xs text-muted">{{ row.property?.address }}</p>
+                       <p class="text-sm font-medium">{{ row.original.property?.title || 'Sin propiedad' }}</p>
+                       <p class="text-xs text-muted">{{ row.original.property?.address }}</p>
                    </div>
                 </template>
 
                  <template #tenant-cell="{ row }">
                    <div>
-                       <p class="text-sm font-medium">{{ row.tenant?.full_name || 'Desconocido' }}</p>
-                       <p class="text-xs text-muted">{{ row.tenant?.email }}</p>
+                       <p class="text-sm font-medium">{{ row.original.tenant?.full_name || 'Desconocido' }}</p>
+                       <p class="text-xs text-muted">{{ row.original.tenant?.email }}</p>
                    </div>
                 </template>
 
                 <template #priority-cell="{ row }">
-                    <UBadge :color="getPriorityColor(row.priority)" variant="subtle" size="xs">
-                        {{ row.priority?.toUpperCase() }}
+                    <UBadge :color="getPriorityColor(row.original.priority)" variant="subtle" size="xs">
+                        {{ row.original.priority?.toUpperCase() }}
                     </UBadge>
                 </template>
 
                 <template #status-cell="{ row }">
-                     <UBadge :color="getStatusColor(row.status)" variant="soft" size="xs">
-                        {{ row.status?.replace('_', ' ').toUpperCase() }}
+                     <UBadge :color="getStatusColor(row.original.status)" variant="soft" size="xs">
+                        {{ row.original.status?.replace('_', ' ').toUpperCase() }}
                     </UBadge>
                 </template>
                 
@@ -188,9 +204,9 @@ const handleStatusChange = async (request: MaintenanceRequest, newStatus: string
                     <div class="flex items-center justify-end gap-2">
                          <UDropdownMenu :items="[
                             [
-                                { label: 'Marcar En Proceso', click: () => handleStatusChange(row, 'en_proceso') },
-                                { label: 'Marcar Completado', click: () => handleStatusChange(row, 'completado') },
-                                { label: 'Cancelar Solicitud', click: () => handleStatusChange(row, 'cancelado') }
+                                { label: 'Marcar En Proceso', click: () => handleStatusChange(row.original, 'en_proceso') },
+                                { label: 'Marcar Completado', click: () => handleStatusChange(row.original, 'completado') },
+                                { label: 'Cancelar Solicitud', click: () => handleStatusChange(row.original, 'cancelado') }
                             ]
                          ]">
                             <UButton color="neutral" variant="ghost" icon="i-lucide-more-vertical" />
@@ -199,7 +215,7 @@ const handleStatusChange = async (request: MaintenanceRequest, newStatus: string
                 </template>
             </UTable>
 
-            <div v-if="!loading && requests.length === 0" class="text-center py-12">
+            <div v-if="!loading && filteredRequests.length === 0" class="text-center py-12">
                 <UIcon name="i-lucide-wrench" class="size-16 mx-auto mb-4 text-muted" />
                 <h3 class="text-lg font-semibold mb-2">No hay solicitudes de mantenimiento</h3>
                 <UButton label="Nueva Solicitud" to="/admin/mantenimiento/nuevo" />

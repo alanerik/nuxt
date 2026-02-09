@@ -21,7 +21,7 @@ const tenants = ref<Tenant[]>([])
 // Form data
 const form = ref({
   property_id: '',
-  tenant_id: '',
+  tenant_id: '',  // Required for admin to specify which tenant
   title: '',
   description: '',
   category: '',
@@ -57,6 +57,9 @@ const validateForm = () => {
   if (!form.value.property_id) {
     errors.value.property_id = 'Debe seleccionar una propiedad'
   }
+  if (!form.value.tenant_id) {
+    errors.value.tenant_id = 'Debe seleccionar un inquilino'
+  }
   if (!form.value.title) {
     errors.value.title = 'El título es requerido'
   }
@@ -78,6 +81,7 @@ const handleSubmit = async () => {
   try {
     await createRequest({
       property_id: form.value.property_id,
+      tenant_id: form.value.tenant_id,
       title: form.value.title,
       description: form.value.description,
       category: form.value.category,
@@ -154,6 +158,25 @@ const priorityOptions = [
             />
             <p v-if="errors.property_id" class="text-sm text-error mt-2">
               {{ errors.property_id }}
+            </p>
+          </UCard>
+
+          <!-- Inquilino -->
+          <UCard>
+            <template #header>
+              <h3 class="font-semibold">Inquilino</h3>
+            </template>
+
+            <USelectMenu
+              v-model="form.tenant_id"
+              :items="tenants.map(t => ({ value: t.id, label: t.full_name || t.email }))"
+              value-key="value"
+              placeholder="Seleccionar inquilino..."
+              searchable
+              :error="!!errors.tenant_id"
+            />
+            <p v-if="errors.tenant_id" class="text-sm text-error mt-2">
+              {{ errors.tenant_id }}
             </p>
           </UCard>
 
