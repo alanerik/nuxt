@@ -233,10 +233,10 @@ const handleDeactivate = async () => {
               :columns="columns"
               :data="tenants"
               :loading="loading"
-              class="min-w-[900px]"
+              class="min-w-225"
             >
               <template #tenant-cell="{ row }">
-                <div class="flex items-center gap-3 min-w-[200px]">
+                <div class="flex items-center gap-3 min-w-50">
                   <div class="w-10 h-10 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0">
                     <img 
                       v-if="row.original.avatar_url"
@@ -256,18 +256,18 @@ const handleDeactivate = async () => {
               </template>
 
               <template #contact-cell="{ row }">
-                <div class="min-w-[180px]">
+                <div class="min-w-45">
                   <p class="text-sm">{{ row.original.email }}</p>
                   <p class="text-sm text-muted">{{ row.original.phone || 'Sin teléfono' }}</p>
                 </div>
               </template>
 
               <template #property-cell="{ row }">
-                <div v-if="row.original.current_contract?.property" class="min-w-[200px]">
+                <div v-if="row.original.current_contract?.property" class="min-w-50">
                   <p class="font-medium">{{ row.original.current_contract.property.title }}</p>
                   <p class="text-sm text-muted">{{ row.original.current_contract.property.city }}</p>
                 </div>
-                <div v-else class="min-w-[200px]">
+                <div v-else class="min-w-50">
                   <p class="text-muted">Sin propiedad asignada</p>
                 </div>
               </template>

@@ -177,7 +177,7 @@ const MAINTENANCE_STATUS_COLORS: Record<string, string> = {
 
     <template #body>
       <!-- Loading -->
-      <div v-if="loading" class="p-6 flex items-center justify-center min-h-[400px]">
+      <div v-if="loading" class="p-6 flex items-center justify-center min-h-100">
         <UIcon name="i-lucide-loader-2" class="size-8 animate-spin text-primary" />
       </div>
 
@@ -187,7 +187,7 @@ const MAINTENANCE_STATUS_COLORS: Record<string, string> = {
         <UCard>
           <div class="flex flex-col md:flex-row gap-6">
             <!-- Avatar -->
-            <div class="flex-shrink-0">
+            <div class="shrink-0">
               <div class="w-24 h-24 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center">
                 <img 
                   v-if="tenant.avatar_url"
@@ -243,7 +243,7 @@ const MAINTENANCE_STATUS_COLORS: Record<string, string> = {
             </div>
 
             <!-- Stats Summary -->
-            <div class="flex-shrink-0 grid grid-cols-2 gap-4">
+            <div class="shrink-0 grid grid-cols-2 gap-4">
               <div class="text-center p-3 bg-muted/30 rounded-lg">
                 <p class="text-2xl font-bold">{{ tenant.contracts?.length || 0 }}</p>
                 <p class="text-sm text-muted">Contratos</p>

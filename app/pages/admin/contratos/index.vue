@@ -255,10 +255,10 @@ const handleCancel = async (contract: Contract) => {
               :columns="columns"
               :data="contracts"
               :loading="loading"
-              class="min-w-[800px]"
+              class="min-w-200"
             >
               <template #property-cell="{ row }">
-                <div class="flex items-center gap-3 min-w-[200px]">
+                <div class="flex items-center gap-3 min-w-50">
                   <div class="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
                     <img 
                       v-if="row.original.property?.images?.[0]"
@@ -278,14 +278,14 @@ const handleCancel = async (contract: Contract) => {
               </template>
 
               <template #tenant-cell="{ row }">
-                <div class="min-w-[150px]">
+                <div class="min-w-37.5">
                   <p class="font-medium">{{ row.original.tenant?.full_name || 'Sin inquilino' }}</p>
                   <p class="text-sm text-muted">{{ row.original.tenant?.email }}</p>
                 </div>
               </template>
 
               <template #dates-cell="{ row }">
-                <div class="min-w-[150px]">
+                <div class="min-w-37.5">
                   <p class="text-sm">
                     {{ formatDate(row.original.start_date) }} - {{ formatDate(row.original.end_date) }}
                   </p>
