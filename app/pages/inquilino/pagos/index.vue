@@ -106,6 +106,59 @@ const totals = computed(() => {
 
   return { pendiente, pagadoMes }
 })
+// Estado modal reporte
+const isReportModalOpen = ref(false)
+const reporting = ref(false)
+const selectedPayment = ref<Payment | null>(null)
+const reportForm = ref({
+  method: '',
+  date: new Date().toISOString().split('T')[0],
+  notes: ''
+})
+
+const { reportPayment } = usePayments()
+const toast = useToast()
+
+const openReportModal = (payment: Payment) => {
+  selectedPayment.value = payment
+  reportForm.value = {
+    method: '',
+    date: new Date().toISOString().split('T')[0],
+    notes: ''
+  }
+  isReportModalOpen.value = true
+}
+
+const handleReportPayment = async () => {
+  if (!selectedPayment.value) return
+  
+  reporting.value = true
+  try {
+    await reportPayment(selectedPayment.value.id, {
+      method: reportForm.value.method,
+      date: reportForm.value.date,
+      notes: reportForm.value.notes
+    })
+    
+    toast.add({
+      title: 'Pago informado correctamente',
+      description: 'La administración ha sido notificada.',
+      color: 'success',
+      icon: 'i-lucide-check-circle'
+    })
+    
+    isReportModalOpen.value = false
+    loadData() // Recargar para ver si hay cambios (aunque estado sigue igual, las notas cambian)
+  } catch (error) {
+    toast.add({
+      title: 'Error al informar pago',
+      description: 'Hubo un problema al procesar tu solicitud.',
+      color: 'error'
+    })
+  } finally {
+    reporting.value = false
+  }
+}
 </script>
 
 <template>
@@ -302,6 +355,21 @@ const totals = computed(() => {
                     {{ PAYMENT_STATUS_LABELS[payment.status as keyof typeof PAYMENT_STATUS_LABELS] }}
                   </UBadge>
                 </div>
+                
+                <!-- Botón Informar Pago -->
+                <UTooltip 
+                  v-if="payment.status === 'pendiente' || payment.status === 'vencido'"
+                  text="Informar un pago realizado"
+                >
+                  <UButton 
+                    icon="i-lucide-banknote"
+                    color="primary"
+                    variant="soft"
+                    size="xs"
+                    @click.stop="openReportModal(payment)"
+                  />
+                </UTooltip>
+
                 <UIcon name="i-lucide-chevron-right" class="size-5 text-muted" />
               </div>
             </div>
@@ -309,5 +377,57 @@ const totals = computed(() => {
         </div>
       </div>
     </template>
+
+    <!-- Modal Informar Pago -->
+    <UModal v-model="isReportModalOpen">
+      <UCard>
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold text-lg">Informar Pago</h3>
+            <UButton color="gray" variant="ghost" icon="i-lucide-x" @click="isReportModalOpen = false" />
+          </div>
+        </template>
+
+        <form @submit.prevent="handleReportPayment" class="space-y-4">
+          <UAlert icon="i-lucide-info" color="primary" variant="subtle" title="Importante">
+            Esto avisará a la administración que realizaste el pago. El estado cambiará a "Pagado" una vez que sea verificado.
+          </UAlert>
+
+          <UFormGroup label="Método de Pago" required>
+            <URadioGroup
+              v-model="reportForm.method"
+              :options="[
+                { label: 'Transferencia Bancaria', value: 'Transferencia' },
+                { label: 'Depósito en Efectivo', value: 'Depósito' },
+                { label: 'Otro', value: 'Otro' }
+              ]"
+            />
+          </UFormGroup>
+
+          <UFormGroup label="Fecha del Pago" required>
+            <UInput type="date" v-model="reportForm.date" icon="i-lucide-calendar" />
+          </UFormGroup>
+
+          <UFormGroup label="Comprobante / Notas" help="Ingresa el número de operación o detalles del comprobante">
+            <UTextarea 
+              v-model="reportForm.notes" 
+              placeholder="Ej: Transferencia #1234 enviado desde Banco X"
+              :rows="3" 
+            />
+          </UFormGroup>
+
+          <div class="flex justify-end gap-2 pt-4">
+            <UButton label="Cancelar" color="gray" variant="ghost" @click="isReportModalOpen = false" />
+            <UButton 
+              type="submit" 
+              label="Informar Pago" 
+              color="primary" 
+              :loading="reporting"
+              :disabled="!reportForm.method || !reportForm.date"
+            />
+          </div>
+        </form>
+      </UCard>
+    </UModal>
   </UDashboardPanel>
 </template>

@@ -370,13 +370,13 @@ export const usePayments = () => {
                     const { data: admins, error: adminError } = await supabase
                         .from('profiles')
                         .select('id')
-                        .eq('role', 'admin') as { data: Array<{id: string}> | null; error: any }
+                        .eq('role', 'admin') as { data: Array<{ id: string }> | null; error: any }
 
                     if (!adminError && admins && admins.length > 0) {
                         const tenantName = (data as any).tenant?.full_name || 'Un inquilino'
                         const amount = (data as any).amount || 0
                         const currency = (data as any).currency || 'ARS'
-                        
+
                         // Crear notificación para cada admin
                         const notifications = admins.map(admin => ({
                             user_id: admin.id,
@@ -599,6 +599,74 @@ export const usePayments = () => {
         }
     }
 
+    /**
+     * Reports a payment made by the tenant
+     */
+    const reportPayment = async (paymentId: string, data: { method: string, date: string, notes?: string }) => {
+        loading.value = true
+        error.value = null
+
+        try {
+            // 1. Update payment notes
+            const { data: payment, error: fetchError } = await supabase
+                .from('payments')
+                .select('notes, amount, currency, tenant:profiles(full_name)')
+                .eq('id', paymentId)
+                .single()
+
+            if (fetchError) throw fetchError
+
+            const currentNotes = payment.notes || ''
+            const newNote = `[PAGO INFORMADO] Fecha: ${data.date}, Método: ${data.method}. ${data.notes || ''}`
+            const updatedNotes = currentNotes ? `${currentNotes}\n\n${newNote}` : newNote
+
+            const { error: updateError } = await supabase
+                .from('payments')
+                .update({ notes: updatedNotes })
+                .eq('id', paymentId)
+
+            if (updateError) throw updateError
+
+            // 2. Notify admins
+            try {
+                const { data: admins } = await supabase
+                    .from('profiles')
+                    .select('id')
+                    .eq('role', 'admin')
+
+                if (admins && admins.length > 0) {
+                    const tenantName = (payment as any).tenant?.full_name || 'Un inquilino'
+                    const amount = (payment as any).amount || 0
+                    const currency = (payment as any).currency || 'ARS'
+
+                    const notifications = admins.map(admin => ({
+                        user_id: admin.id,
+                        type: 'payment',
+                        title: 'Pago Informado',
+                        message: `${tenantName} ha informado un pago de ${amount} ${currency}.`,
+                        entity_type: 'payment',
+                        entity_id: paymentId,
+                        is_read: false,
+                        created_at: new Date().toISOString()
+                    }))
+
+                    await supabase.from('notifications').insert(notifications as never)
+                }
+            } catch (notifError) {
+                console.error('Error notifying admins:', notifError)
+            }
+
+            return true
+        } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e))
+            error.value = err
+            console.error('Error reporting payment:', err)
+            throw err
+        } finally {
+            loading.value = false
+        }
+    }
+
     return {
         // Estado
         payments: readonly(payments),
@@ -613,6 +681,7 @@ export const usePayments = () => {
         fetchActiveContracts,
         createPayment,
         registerPayment,
+        reportPayment, // Exported
         updatePaymentStatus,
         getPaymentStats,
         getUpcomingPayments,

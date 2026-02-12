@@ -5,18 +5,18 @@ definePageMeta({
   layout: 'inquilino'
 })
 
-onMounted(() => {
-    // Current user's requests are filtered automatically by RLS usually, 
-    // but our composable logic has explicit filtering if needed. 
-    // Ideally useMaintenance uses useSupabaseUser() to contextually filter or the DB RLS handles it.
-    // In our implementation of fetchRequests we added explicit filters for tenant_id if provided, 
-    // but let's see how I implemented it. 
-    // Ah, fetchRequests has filters parameter. Let's pass the user ID if I can access it or rely on composable default? 
-    // Looking at composable: fetchRequests takes filters. 
-    // Let's pass tenant_id from user just in case or trust RLS.
-    const user = useSupabaseUser()
-    if(user.value) {
-        fetchRequests({ tenant_id: user.value.id })
+const user = useSupabaseUser()
+
+// Watch for user to be available before fetching
+watch(user, (newUser) => {
+    if (newUser?.id) {
+        fetchRequests({ tenant_id: newUser.id })
+    }
+}, { immediate: true })
+
+watch(requests, () => {
+    if (requests.value.length > 0) {
+        // Checking first request
     }
 })
 

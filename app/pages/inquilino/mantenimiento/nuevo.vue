@@ -34,23 +34,67 @@ const priorityOptions = [
 // Load initial data
 onMounted(async () => {
     fetchCategories()
-    fetchMyProperties()
+    
+    // Fallback: Check if user is already available in state or fetch from auth
+    if (!user.value || !user.value.id) {
+
+        const { data, error } = await supabase.auth.getUser()
+        
+        if (data?.user) {
+
+             // Manually call fetch with the retrieved ID
+             fetchMyProperties(data.user.id)
+        } else {
+             console.warn('⚠️ Maintenance Form: No session found.')
+        }
+    } else {
+        // User already available
+        fetchMyProperties(user.value.id)
+    }
 })
 
-const fetchMyProperties = async () => {
+// Watch for user to be available to fetch properties (reactive fallback)
+watch(user, (newUser) => {
+    if (newUser?.id) {
+
+        fetchMyProperties(newUser.id)
+    }
+})
+
+const fetchMyProperties = async (userId?: string) => {
+    const targetUserId = userId || user.value?.id
+    
+    if (!targetUserId) {
+
+        return
+    }
+
     loadingProps.value = true
     try {
-        if (!user.value) return
+
         
-        // Fetch active contracts to get properties
-        const { data } = await supabase
+        // Fetch active AND pending contracts to get properties
+        // Sometimes a tenant might want to report an issue on a property they just signed for
+        const { data, error } = await supabase
             .from('contracts')
-            .select('property:properties(id, title, address)')
-            .eq('tenant_id', user.value.id)
-            .eq('status', 'activo')
+            .select('status, property:properties(id, title, address)')
+            .eq('tenant_id', targetUserId)
+            .in('status', ['activo', 'pendiente'])
+        
+
+        
+        if (error) {
+            console.error('❌ Error fetching contracts:', error)
+        }
         
         if (data) {
-            myProperties.value = data.map((c) => c.property)
+            // Filter out null properties just in case
+            myProperties.value = data
+                .map((c) => c.property)
+                .filter(p => p !== null) as PropertyRow[]
+                
+            console.log('🏠 Properties found:', myProperties.value.length)
+            
             if (myProperties.value.length === 1) {
                 form.value.property_id = myProperties.value[0].id
             }

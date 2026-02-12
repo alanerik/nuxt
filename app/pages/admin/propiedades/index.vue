@@ -120,7 +120,7 @@ const rowActions = (property: Property) => [[
     label: 'Ver detalle',
     icon: 'i-lucide-eye',
     click: () => {
-      console.log('Click en Ver detalle', property.id)
+
       return navigateTo(`/admin/propiedades/${property.id}`)
     }
   },
@@ -128,7 +128,7 @@ const rowActions = (property: Property) => [[
     label: 'Editar',
     icon: 'i-lucide-pencil',
     click: () => {
-      console.log('Click en Editar', property.id)
+
       return navigateTo(`/admin/propiedades/${property.id}/editar`)
     }
   }
@@ -137,7 +137,7 @@ const rowActions = (property: Property) => [[
     label: 'Eliminar',
     icon: 'i-lucide-trash-2',
     click: () => {
-      console.log('Click en Eliminar (abrir modal)', property.id)
+
       confirmDelete(property)
     }
   }

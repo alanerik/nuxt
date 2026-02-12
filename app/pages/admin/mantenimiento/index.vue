@@ -30,12 +30,12 @@ const filteredRequests = computed(() => {
     )
   }
 
-  console.log('🔍 Filtered results:', { total: requests.value.length, filtered: result.length, searchQuery: searchQuery.value })
+
   return result
 })
 
 onMounted(() => {
-  console.log('📋 Admin Maintenance: Component mounted')
+
   loadData()
   
   // Recargar datos cada 30 segundos
@@ -44,7 +44,7 @@ onMounted(() => {
 })
 
 const loadData = () => {
-    console.log('🔄 Loading maintenance data, filter:', statusFilter.value)
+
     const filters: { status?: string } = {}
     if (statusFilter.value !== 'all') {
         filters.status = statusFilter.value
@@ -58,12 +58,6 @@ watch([statusFilter], () => {
 
 // Debug: watch requests and filteredRequests
 watch([requests, filteredRequests, loading], () => {
-    console.log('🔍 STATE CHANGE:', { 
-        requestsCount: requests.value.length, 
-        filteredCount: filteredRequests.value.length,
-        loading: loading.value,
-        firstRequest: requests.value[0]
-    })
 })
 
 const getPriorityColor = (priority: string) => {
@@ -102,7 +96,7 @@ const columns = [
   { key: 'actions', label: '', id: 'actions', header: '' }
 ]
 
-const handleStatusChange = async (request: MaintenanceRequest, newStatus: string) => {
+const handleStatusChange = async (request: MaintenanceRequest, newStatus: 'pendiente' | 'en_proceso' | 'completado' | 'cancelado') => {
     try {
         await updateRequestStatus(request.id, newStatus)
         useToast().add({ title: 'Estado actualizado', color: 'success' })
@@ -122,10 +116,9 @@ const handleStatusChange = async (request: MaintenanceRequest, newStatus: string
         </template>
 
         <template #right>
-           <UButton 
              to="/admin/mantenimiento/rubros" 
              icon="i-lucide-list" 
-             color="gray"
+             color="neutral"
              label="Rubros" 
            />
            <UButton 
@@ -202,11 +195,11 @@ const handleStatusChange = async (request: MaintenanceRequest, newStatus: string
                 
                 <template #actions-cell="{ row }">
                     <div class="flex items-center justify-end gap-2">
-                         <UDropdownMenu :items="[
+                        <UDropdownMenu :items="[
                             [
-                                { label: 'Marcar En Proceso', click: () => handleStatusChange(row.original, 'en_proceso') },
-                                { label: 'Marcar Completado', click: () => handleStatusChange(row.original, 'completado') },
-                                { label: 'Cancelar Solicitud', click: () => handleStatusChange(row.original, 'cancelado') }
+                                { label: 'Marcar En Proceso', onSelect: () => handleStatusChange(row.original, 'en_proceso') },
+                                { label: 'Marcar Completado', onSelect: () => handleStatusChange(row.original, 'completado') },
+                                { label: 'Cancelar Solicitud', onSelect: () => handleStatusChange(row.original, 'cancelado') }
                             ]
                          ]">
                             <UButton color="neutral" variant="ghost" icon="i-lucide-more-vertical" />

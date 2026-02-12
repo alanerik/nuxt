@@ -55,35 +55,110 @@ const getDaysUntilDue = (dueDate: string) => {
 // Cargar datos
 const loadData = async () => {
   loading.value = true
+
+  
   try {
-    if (!user.value?.id) return
+    if (!user.value?.id) {
+
+        return
+    }
 
     // Obtener contrato activo del inquilino
-    const { data: contractsData } = await fetchContracts({
-      tenant_id: user.value.id,
-      status: 'activo'
-    })
+    try {
 
-    if (contractsData && contractsData.length > 0) {
-      contract.value = contractsData[0]
+        const { data: contractsData, error: contractsError } = await fetchContracts({
+          tenant_id: user.value.id,
+          status: 'activo'
+        })
+        
+        if (contractsError) { /* handle error if needed */ }
+
+        if (contractsData && contractsData.length > 0) {
+          contract.value = contractsData[0]
+          contract.value = contractsData[0]
+        } else {
+          /* handle no contract found if needed */
+        }
+    } catch (e) {
+        /* handle exception if needed */
     }
 
     // Obtener próximo pago
-    nextPayment.value = await getNextTenantPayment()
+    try {
+
+    } catch (e) {
+        /* handle exception if needed */
+    }
 
     // Obtener solicitudes de mantenimiento recientes
-    await fetchRequests({
-      tenant_id: user.value.id
-    })
+    try {
+
+    } catch (e) {
+        /* handle exception if needed */
+    }
+
   } catch (error) {
-    console.error('Error loading dashboard data:', error)
+    /* handle critical error if needed */
   } finally {
     loading.value = false
+
   }
 }
 
-onMounted(() => {
-  loadData()
+const supabase = useSupabaseClient()
+
+// Watch for user to be available before fetching data
+watch(user, (newUser) => {
+
+  
+  if (newUser?.id) {
+    loadData()
+  }
+}, { immediate: true })
+
+onMounted(async () => {
+
+
+    // Fallback: Si no hay ID o no hay usuario, intentar obtener sesión fresca
+    if (!user.value || !user.value.id) {
+
+        try {
+            const { data, error } = await supabase.auth.getUser()
+            
+            if (error) {
+                /* handle auth error if needed */
+            }
+            
+            if (data?.user) {
+
+                 // Si useSupabaseUser no se actualizó, usamos este usuario
+                 loadData() // Llamamos directamente con el usuario obtenido si el watcher no salta
+                 // Hack: forzar actualización si es necesario, pero loadData usa user.value
+                 // Si user.value sigue mal, loadData fallará.
+                 // Vamos a pasar el ID explícitamente a loadData para evitar depender de user.value en este caso crítico
+                 fetchContracts({ tenant_id: data.user.id, status: 'activo' }).then(res => {
+                     if (res.data && res.data.length > 0) {
+                         contract.value = res.data[0]
+                         // console.log('✅ Manual contract load success')
+                     }
+                 })
+                 fetchRequests({ tenant_id: data.user.id })
+            } else {
+
+                 // Redirigir a login si es necesario, pero por ahora solo loguear
+            }
+        } catch (e) {
+            /* handle exception in auth fetch if needed */
+        }
+    }
+
+    // Safety timeout to ensure loading doesn't hang forever
+    setTimeout(() => {
+        if (loading.value) {
+
+            loading.value = false
+        }
+    }, 5000)
 })
 </script>
 

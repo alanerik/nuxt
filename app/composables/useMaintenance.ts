@@ -79,14 +79,14 @@ export const useMaintenance = () => {
 
             const { data, error: err } = await query
 
-            console.log('🔍 Fetching maintenance requests:', { filters, resultCount: data?.length || 0 })
+
 
             if (err) {
                 console.error('❌ Error fetching maintenance requests:', err)
                 throw err
             }
 
-            console.log('✅ Successfully fetched maintenance requests:', data)
+
             requests.value = data as MaintenanceRequest[]
         } catch (e) {
             error.value = e as Error
@@ -167,7 +167,7 @@ export const useMaintenance = () => {
                 ...(payload.images?.length && { images: payload.images })
             }
 
-            console.log('Creating maintenance request with payload:', insertPayload)
+
 
             const { data, error: err } = await supabase
                 .from('maintenance_requests')
@@ -227,8 +227,6 @@ export const useMaintenance = () => {
     const updateRequestStatus = async (id: string, status: 'pendiente' | 'en_proceso' | 'completado' | 'cancelado', notes?: string) => {
         loading.value = true
         try {
-            console.log('🔄 Updating request status:', { id, status, notes })
-
             const updates: { status: 'pendiente' | 'en_proceso' | 'completado' | 'cancelado'; updated_at: string; notes?: string } = { status, updated_at: new Date().toISOString() }
             if (notes) updates.notes = notes
 
@@ -242,7 +240,7 @@ export const useMaintenance = () => {
                 throw err
             }
 
-            console.log('✅ Status updated successfully')
+
 
             // Obtener los datos de la solicitud para enviar notificación al inquilino
             const { data: requestData, error: fetchErr } = await supabase
@@ -282,7 +280,7 @@ export const useMaintenance = () => {
                                 is_read: false
                             } as never)
 
-                        console.log('✅ Notification sent to tenant:', tenant.id)
+
                     }
                 } catch (notifError) {
                     console.error('⚠️ Error creating notification:', notifError)
