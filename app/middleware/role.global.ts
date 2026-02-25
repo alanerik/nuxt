@@ -11,7 +11,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     if (to.meta.public) return
 
     const supabase = useSupabaseClient()
-    const { role, fetchRole, clearRole } = useUserRole()
+    const { role, error: roleError, fetchRole, clearRole } = useUserRole()
 
     // Preferir sesión local para reducir latencia;
     // usar getUser() si necesitás validación server-side estricta
@@ -24,8 +24,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
     // Obtener rol solo si no está en caché
     if (!role.value) {
-        const { error } = await fetchRole(false, user.id)
-        if (error) {
+        await fetchRole(false, user.id)
+        if (roleError.value) {
             return navigateTo('/error?code=auth_error', { replace: true })
         }
     }
