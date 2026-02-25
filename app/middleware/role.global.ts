@@ -1,38 +1,44 @@
+import type { AppRole } from '~/types/roles'
+
+const ROLE_HOME: Record<AppRole, string> = {
+    admin: '/admin/dashboard',
+    inquilino: '/inquilino/inicio',
+    agente: '/agente/panel',
+}
+
 export default defineNuxtRouteMiddleware(async (to) => {
+    // Rutas públicas via page meta (no hardcodear aquí)
+    if (to.meta.public) return
+
     const supabase = useSupabaseClient()
-    const { fetchRole, clearRole } = useUserRole()
+    const { role, fetchRole, clearRole } = useUserRole()
 
-    const { data: { user } } = await supabase.auth.getUser()
+    // Preferir sesión local para reducir latencia;
+    // usar getUser() si necesitás validación server-side estricta
+    const { data: { session } } = await supabase.auth.getSession()
+    const user = session?.user
 
-    // ===== 1. RUTAS PÚBLICAS =====
-    const publicPaths = ['/', '/login', '/register', '/confirm', '/reset-password', '/update-password']
-    if (publicPaths.some(path => to.path === path || to.path.startsWith(`${path}/`))) {
-        return
-    }
-
-    // ===== 2. VERIFICAR AUTENTICACIÓN =====
     if (!user) {
         return navigateTo('/login', { replace: true })
     }
 
-    // ===== 3. OBTENER ROL =====
-    const userRole = await fetchRole(false, user.id)
+    // Obtener rol solo si no está en caché
+    if (!role.value) {
+        const { error } = await fetchRole(false, user.id)
+        if (error) {
+            return navigateTo('/error?code=auth_error', { replace: true })
+        }
+    }
 
-    if (!userRole) {
+    if (!role.value) {
         await supabase.auth.signOut()
         clearRole()
         return navigateTo('/login', { replace: true })
     }
 
-    // ===== 4. VERIFICAR ACCESO POR ROL =====
-    const expectedRole = extractRoleFromPath(to.path)
-
-    if (expectedRole && expectedRole !== userRole) {
-        return navigateTo(`/${userRole}/dashboard`, { replace: true })
+    // Rol requerido declarado en la página, no inferido de la URL
+    const requiredRole = to.meta.requiredRole as AppRole | undefined
+    if (requiredRole && requiredRole !== role.value) {
+        return navigateTo(ROLE_HOME[role.value as AppRole] ?? '/login', { replace: true })
     }
 })
-
-function extractRoleFromPath(path: string): string | null {
-    const match = path.match(/^\/(admin|inquilino|agente)/)
-    return match ? (match[1] || null) : null
-}
