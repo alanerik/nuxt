@@ -1,26 +1,13 @@
 <script setup lang="ts">
-import type { Database } from '~/types/database.types'
-
-const supabase = useSupabaseClient<Database>()
 const { isNotificationsSlideoverOpen } = useDashboard()
-const { 
-  notifications, 
-  unreadCount, 
-  fetchNotifications, 
-  markAsRead, 
-  markAllAsRead, 
-  subscribeToNotifications 
+const {
+  notifications,
+  unreadCount,
+  markAsRead,
+  markAllAsRead,
 } = useNotifications()
-
-// Initial Load
-onMounted(() => {
-  fetchNotifications()
-  const channel = subscribeToNotifications()
-  
-  onUnmounted(() => {
-    if (channel) supabase.removeChannel(channel)
-  })
-})
+// No subscription here — the layout (admin.vue) owns the channel lifecycle.
+// This prevents duplicate channels and double-counting events.
 
 const getIcon = (type: string) => {
   switch (type) {

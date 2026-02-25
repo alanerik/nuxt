@@ -1,8 +1,25 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 
+const supabase = useSupabaseClient()
 const route = useRoute()
 const open = ref(false)
+
+// ── Notifications: global subscription owned by the layout ──────────────────
+// This way the unread badge is always live, even if the slideover has never
+// been opened. The channel is cleaned up when leaving the admin area.
+const { fetchNotifications, subscribeToRealtime } = useNotifications()
+let notifChannel: ReturnType<typeof supabase.channel> | null = null
+
+onMounted(async () => {
+  await fetchNotifications()
+  notifChannel = subscribeToRealtime()
+})
+
+onUnmounted(() => {
+  if (notifChannel) supabase.removeChannel(notifChannel)
+})
 
 const links = [[
   {
