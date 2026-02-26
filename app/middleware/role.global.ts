@@ -15,7 +15,15 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
     // Preferir sesión local para reducir latencia;
     // usar getUser() si necesitás validación server-side estricta
-    const { data: { session } } = await supabase.auth.getSession()
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+    // Si el refresh token es inválido, limpiar sesión y redirigir
+    if (sessionError) {
+        await supabase.auth.signOut()
+        clearRole()
+        return navigateTo('/login', { replace: true })
+    }
+
     const user = session?.user
 
     if (!user) {

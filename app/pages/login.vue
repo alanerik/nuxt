@@ -71,7 +71,8 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: false
+  layout: false,
+  public: true
 })
 
 const selectedRole = ref<'admin' | 'inquilino' | 'agente' | null>(null)
